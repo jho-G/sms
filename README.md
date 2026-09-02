@@ -41,15 +41,27 @@ sms/
     │   │   └── urls.py           # API URL patterns
     │   └── migrations/
     │
-    └── academics/                # Academic Infrastructure
+    ├── academics/                # Academic Infrastructure
+    │   ├── __init__.py
+    │   ├── models.py             # AcademicYear, GradeLevel, ClassSection, Subject, SubjectAssignment
+    │   ├── services.py           # Business logic
+    │   ├── selectors.py          # Query functions
+    │   ├── api/
+    │   │   ├── __init__.py
+    │   │   ├── serializers.py    # API serializers
+    │   │   ├── views.py          # Director-only API views
+    │   │   └── urls.py           # API URL patterns
+    │   └── migrations/
+    │
+    └── enrollment/               # Enrollment & Profile Management
         ├── __init__.py
-        ├── models.py             # AcademicYear, GradeLevel, ClassSection, Subject, SubjectAssignment
-        ├── services.py           # Business logic
-        ├── selectors.py          # Query functions
+        ├── models.py             # StudentProfile, TeacherProfile, ParentProfile, StudentGuardian
+        ├── services.py           # Business logic (register_student, link_parent_to_student)
+        ├── selectors.py          # Query functions (get_student_guardians, get_parent_children)
         ├── api/
         │   ├── __init__.py
         │   ├── serializers.py    # API serializers
-        │   ├── views.py          # Director-only API views
+        │   ├── views.py          # Profile CRUD & guardian management views
         │   └── urls.py           # API URL patterns
         └── migrations/
 ```
@@ -75,6 +87,12 @@ sms/
 - **ClassSection** - Sections within grades (e.g., 11-A, 12-B) with capacity management
 - **Subject** - Subjects/courses (e.g., Mathematics, Physics) with grade level associations
 - **SubjectAssignment** - Teacher-subject-section mappings with conflict prevention
+
+### Enrollment & Profile Management
+- **StudentProfile** - Student profiles with institutional ID, section assignment, DOB
+- **TeacherProfile** - Teacher profiles with employee ID, department, qualifications
+- **ParentProfile** - Parent profiles with occupation, address, secondary contact
+- **StudentGuardian** - Junction model linking parents to children with relationship type and primary flag
 
 ### REST Framework Configuration
 - Standard JSON formatting
@@ -121,6 +139,23 @@ sms/
 | `/api/academics/assignments/<uuid>/` | GET/DELETE | Assignment detail/deactivate | Director |
 | `/api/academics/assignments/teacher/<uuid>/` | GET | Teacher's assignments | Director |
 | `/api/academics/assignments/section/<uuid>/` | GET | Section's assignments | Director |
+
+### Enrollment & Profiles
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/enrollment/students/` | GET/POST | List/Create student profiles | Yes |
+| `/api/enrollment/students/<uuid>/` | GET/PUT/PATCH/DELETE | Student profile detail | Yes |
+| `/api/enrollment/students/by-section/<uuid>/` | GET | Students in a section | Yes |
+| `/api/enrollment/teachers/` | GET/POST | List/Create teacher profiles | Yes |
+| `/api/enrollment/teachers/<uuid>/` | GET/PUT/PATCH/DELETE | Teacher profile detail | Yes |
+| `/api/enrollment/parents/` | GET/POST | List/Create parent profiles | Yes |
+| `/api/enrollment/parents/<uuid>/` | GET/PUT/PATCH/DELETE | Parent profile detail | Yes |
+| `/api/enrollment/guardians/` | GET/POST | List/Create guardian links | Yes |
+| `/api/enrollment/guardians/<uuid>/` | GET/DELETE | Guardian link detail/unlink | Yes |
+| `/api/enrollment/guardians/student/<uuid>/` | GET | Guardians of a student | Yes |
+| `/api/enrollment/guardians/parent/<uuid>/` | GET | Children of a parent | Yes |
+| `/api/enrollment/guardians/set-primary/` | POST | Set primary guardian | Yes |
 
 ## Setup
 
@@ -333,6 +368,50 @@ curl -X POST http://localhost:8000/api/academics/assignments/ \
 | academic_year | FK | Academic year |
 | is_active | Boolean | Active status |
 
+### StudentProfile
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| user | FK | User with STUDENT role |
+| student_id | String | Institutional ID (unique, indexed) |
+| section | FK | Assigned class section |
+| date_of_birth | Date | Student's DOB |
+| enrollment_date | Date | Auto-set on creation |
+| guardian_contact | String | Primary guardian phone |
+| medical_notes | Text | Allergies/conditions |
+| is_active | Boolean | Active status |
+
+### TeacherProfile
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| user | FK | User with TEACHER role |
+| employee_id | String | Institutional employee ID (unique, indexed) |
+| department | String | Department name |
+| specialization | String | Areas of specialization |
+| qualification | String | Highest qualification |
+| hire_date | Date | Auto-set on creation |
+| is_active | Boolean | Active status |
+
+### ParentProfile
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| user | FK | User with PARENT role |
+| occupation | String | Parent's occupation |
+| address | Text | Parent's address |
+| secondary_phone | String | Secondary phone number |
+| is_active | Boolean | Active status |
+
+### StudentGuardian
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| parent | FK | ParentProfile |
+| student | FK | StudentProfile |
+| relationship | String | FATHER/MOTHER/GUARDIAN/SIBLING/OTHER |
+| is_primary | Boolean | Primary guardian flag |
+
 ## Permissions
 
 ### Role-Based Permissions
@@ -388,6 +467,7 @@ curl -X POST http://localhost:8000/api/academics/assignments/ \
 - **API Layer**: `api/serializers.py`, `api/views.py`, `api/urls.py`
 - **Permissions**: Role-based permissions in each app's `permissions.py`
 - **Imports**: Use module names without `apps.` prefix (e.g., `from academics.models import ...`)
+- **No raw DB mutations in views**: All mutations go through `services.py`
 
 ## License
 
