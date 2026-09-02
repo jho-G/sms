@@ -49,7 +49,7 @@ def create_user(email: str, password: str, role: str = User.Role.STUDENT, **extr
         **extra_fields,
     )
     user.set_password(password)
-    user.save(using=User._db)
+    user.save()
     
     return user
 
