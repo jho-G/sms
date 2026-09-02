@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "common",
     "authentication",
     "academics",
+    "enrollment",
 ]
 
 MIDDLEWARE = [

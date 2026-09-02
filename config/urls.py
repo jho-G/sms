@@ -17,6 +17,8 @@ urlpatterns = [
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token-verify"),
     # Academics API
     path("api/academics/", include("academics.api.urls")),
+    # Enrollment API
+    path("api/enrollment/", include("enrollment.api.urls")),
 ]
 
 # Serve media files in development
