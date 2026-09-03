@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -205,9 +207,21 @@ class SubjectDateAttendanceView(APIView):
     permission_classes = [IsDirectorOrTeacher]
 
     def get(self, request, subject_assignment_id, target_date):
+        # Parse string date (YYYY-MM-DD) into date object
+        try:
+            parsed_date = datetime.strptime(target_date, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return Response(
+                {
+                    "success": False,
+                    "error": {"message": "Invalid date format. Use YYYY-MM-DD."},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         records = get_attendance_by_subject_assignment(
             subject_assignment_id=subject_assignment_id,
-            target_date=target_date,
+            target_date=parsed_date,
         )
 
         return Response(

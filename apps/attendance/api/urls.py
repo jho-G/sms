@@ -37,7 +37,7 @@ urlpatterns = [
     ),
     # Subject + date attendance lookup
     path(
-        "subject/<uuid:subject_assignment_id>/date/<date:target_date>/",
+        "subject/<uuid:subject_assignment_id>/date/<str:target_date>/",
         SubjectDateAttendanceView.as_view(),
         name="subject-date-attendance",
     ),
