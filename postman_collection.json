@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Student Management System (SMS)",
-    "description": "Complete API collection for the Student Management System.\n\n## Setup\n1. Set the `base_url` variable (default: http://localhost:8000)\n2. Register a Director account\n3. Login to get access and refresh tokens\n4. Set `access_token` and `refresh_token` collection variables\n\n## Workflow\n1. Register Director -> Login as Director\n2. Create Academic Year -> Create Grade Level -> Create Section -> Create Subject\n3. Register Teacher -> Create Subject Assignment\n4. Register Student -> Bulk submit attendance",
+    "description": "Complete API collection for the Student Management System.\n\n## Setup\n1. Set the `base_url` variable (default: http://localhost:8000)\n2. Register a Director account\n3. Login to get access and refresh tokens\n4. Set `access_token` and `refresh_token` collection variables\n\n## Workflow\n1. Register Director -> Login as Director\n2. Create Academic Year -> Create Grade Level -> Create Section -> Create Subject\n3. Register Teacher -> Create Subject Assignment\n4. Register Student -> Bulk submit attendance\n5. Create Assessment Categories -> Record grades -> View report cards",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -28,7 +28,9 @@
     { "key": "subject_id", "value": "" },
     { "key": "assignment_id", "value": "" },
     { "key": "subject_assignment_id", "value": "" },
-    { "key": "attendance_record_id", "value": "" }
+    { "key": "attendance_record_id", "value": "" },
+    { "key": "assessment_category_id", "value": "" },
+    { "key": "grade_id", "value": "" }
   ],
   "item": [
     {
@@ -889,6 +891,216 @@
               "query": [
                 { "key": "academic_year_id", "value": "{{academic_year_id}}", "disabled": true }
               ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Grading",
+      "description": "Grading, GPA calculation, and report cards.\n\n## Workflow\n1. Login as Teacher/Director\n2. Create Assessment Categories (e.g., Midterm 30%, Final 50%)\n3. Record grades for students\n4. View report cards with overall GPA",
+      "item": [
+        {
+          "name": "List Assessment Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/categories/?subject_assignment_id={{subject_assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "categories", ""],
+              "query": [
+                { "key": "subject_assignment_id", "value": "{{subject_assignment_id}}", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Assessment Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('assessment_category_id', jsonData.data.id);",
+                  "    console.log('Assessment category ID saved: ' + jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Midterm\",\n  \"subject_assignment\": \"{{subject_assignment_id}}\",\n  \"weight\": \"30.00\",\n  \"description\": \"Midterm examination\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/grading/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "categories", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assessment Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/categories/{{assessment_category_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "categories", "{{assessment_category_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Assessment Category",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/categories/{{assessment_category_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "categories", "{{assessment_category_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Grades",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/grades/?student_id={{student_id}}&assessment_category_id={{assessment_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "grades", ""],
+              "query": [
+                { "key": "student_id", "value": "{{student_id}}", "disabled": true },
+                { "key": "assessment_category_id", "value": "{{assessment_category_id}}", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Single Grade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('grade_id', jsonData.data.id);",
+                  "    console.log('Grade ID saved: ' + jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacher_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": \"{{student_id}}\",\n  \"assessment_category\": \"{{assessment_category_id}}\",\n  \"score\": \"85.00\",\n  \"max_score\": \"100.00\",\n  \"remarks\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/grading/grades/record/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "grades", "record", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Submit Grades",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('grade_id', jsonData.data[0].id);",
+                  "    console.log('First grade ID saved: ' + jsonData.data[0].id);",
+                  "    console.log('Total grades: ' + jsonData.data.length);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacher_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assessment_category_id\": \"{{assessment_category_id}}\",\n  \"grades\": [\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"score\": \"85.00\",\n      \"max_score\": \"100.00\",\n      \"remarks\": \"\"\n    },\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"score\": \"72.50\",\n      \"max_score\": \"100.00\",\n      \"remarks\": \"Needs improvement\"\n    },\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"score\": \"95.00\",\n      \"max_score\": \"100.00\",\n      \"remarks\": \"Excellent work\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/grading/grades/bulk-submit/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "grades", "bulk-submit", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subject Total",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/subject-total/{{student_id}}/{{subject_assignment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "subject-total", "{{student_id}}", "{{subject_assignment_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Report Card",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/report-card/{{student_id}}/{{academic_year_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "report-card", "{{student_id}}", "{{academic_year_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Report Card (Student)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/grading/my-report-card/{{academic_year_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "grading", "my-report-card", "{{academic_year_id}}", ""]
             }
           },
           "response": []
