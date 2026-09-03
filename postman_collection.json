@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Student Management System (SMS)",
-    "description": "Complete API collection for the Student Management System.\n\n## Setup\n1. Set the `base_url` variable (default: http://localhost:8000)\n2. Register a Director account\n3. Login to get access and refresh tokens\n4. Set `access_token` and `refresh_token` collection variables\n\n## Workflow\n1. Register Director -> Login as Director\n2. Create Academic Year -> Create Grade Level -> Create Section -> Create Subject\n3. Register Teacher -> Create Subject Assignment",
+    "description": "Complete API collection for the Student Management System.\n\n## Setup\n1. Set the `base_url` variable (default: http://localhost:8000)\n2. Register a Director account\n3. Login to get access and refresh tokens\n4. Set `access_token` and `refresh_token` collection variables\n\n## Workflow\n1. Register Director -> Login as Director\n2. Create Academic Year -> Create Grade Level -> Create Section -> Create Subject\n3. Register Teacher -> Create Subject Assignment\n4. Register Student -> Bulk submit attendance",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -18,6 +18,7 @@
     { "key": "teacher_password", "value": "securepassword123" },
     { "key": "student_email", "value": "student@example.com" },
     { "key": "student_password", "value": "securepassword123" },
+    { "key": "director_id", "value": "" },
     { "key": "teacher_id", "value": "" },
     { "key": "student_id", "value": "" },
     { "key": "parent_id", "value": "" },
@@ -25,7 +26,9 @@
     { "key": "grade_level_id", "value": "" },
     { "key": "section_id", "value": "" },
     { "key": "subject_id", "value": "" },
-    { "key": "assignment_id", "value": "" }
+    { "key": "assignment_id", "value": "" },
+    { "key": "subject_assignment_id", "value": "" },
+    { "key": "attendance_record_id", "value": "" }
   ],
   "item": [
     {
@@ -659,6 +662,7 @@
                       "var jsonData = pm.response.json();",
                       "if (jsonData.success && jsonData.data) {",
                       "    pm.collectionVariables.set('assignment_id', jsonData.data.id);",
+                      "    pm.collectionVariables.set('subject_assignment_id', jsonData.data.id);",
                       "    console.log('Assignment ID saved: ' + jsonData.data.id);",
                       "}"
                     ],
@@ -717,6 +721,177 @@
               "response": []
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "description": "Attendance tracking and event-driven absence notifications.\n\n## Workflow\n1. Login as Teacher\n2. Create Student Profiles (via Enrollment)\n3. Create Subject Assignment (via Academics)\n4. Bulk submit attendance or record single attendance\n5. Query attendance records and absence summaries",
+      "item": [
+        {
+          "name": "List Attendance Records",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacher_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", ""],
+              "query": [
+                { "key": "student_id", "value": "{{student_id}}", "disabled": true },
+                { "key": "subject_assignment_id", "value": "{{subject_assignment_id}}", "disabled": true },
+                { "key": "date", "value": "2026-09-03", "disabled": true },
+                { "key": "status", "value": "PRESENT", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance Record by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacher_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/{{attendance_record_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "{{attendance_record_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Attendance Record",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacher_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"LATE\",\n  \"remarks\": \"Arrived 15 minutes late\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/{{attendance_record_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "{{attendance_record_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Attendance Record",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacher_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/{{attendance_record_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "{{attendance_record_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Single Attendance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('attendance_record_id', jsonData.data.id);",
+                  "    console.log('Attendance record ID saved: ' + jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacher_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": \"{{student_id}}\",\n  \"subject_assignment\": \"{{subject_assignment_id}}\",\n  \"date\": \"2026-09-03\",\n  \"status\": \"PRESENT\",\n  \"remarks\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/record/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "record", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Submit Attendance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('attendance_record_id', jsonData.data[0].id);",
+                  "    console.log('First attendance record ID saved: ' + jsonData.data[0].id);",
+                  "    console.log('Total records: ' + jsonData.data.length);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacher_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject_assignment_id\": \"{{subject_assignment_id}}\",\n  \"date\": \"2026-09-03\",\n  \"records\": [\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"status\": \"PRESENT\",\n      \"remarks\": \"\"\n    },\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"status\": \"ABSENT\",\n      \"remarks\": \"Parent notified\"\n    },\n    {\n      \"student_id\": \"{{student_id}}\",\n      \"status\": \"LATE\",\n      \"remarks\": \"Arrived 10 minutes late\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/bulk-submit/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "bulk-submit", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subject-Date Attendance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacher_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/subject/{{subject_assignment_id}}/date/2026-09-03/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "subject", "{{subject_assignment_id}}", "date", "2026-09-03", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Absence Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacher_access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/student/{{student_id}}/absences/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "student", "{{student_id}}", "absences", ""],
+              "query": [
+                { "key": "academic_year_id", "value": "{{academic_year_id}}", "disabled": true }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
