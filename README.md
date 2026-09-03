@@ -79,6 +79,20 @@ sms/
         │   ├── views.py          # DRF views (bulk submit, list, detail, summary)
         │   └── urls.py           # API URL patterns
         └── migrations/
+    │
+    └── grading/                  # Grading & GPA Calculation
+        ├── __init__.py
+        ├── apps.py               # AppConfig
+        ├── models.py             # AssessmentCategory, Grade
+        ├── services.py           # record_student_grades, create_assessment_category
+        ├── selectors.py          # get_student_report_card, calculate_subject_total
+        ├── admin.py              # Django admin registration
+        ├── api/
+        │   ├── __init__.py
+        │   ├── serializers.py    # API serializers (categories, grades, report cards)
+        │   ├── views.py          # DRF views (mark entry, report cards, GPA)
+        │   └── urls.py           # API URL patterns
+        └── migrations/
 ```
 
 ## Features
@@ -117,6 +131,16 @@ sms/
 - **Decoupled events** - Custom `student_marked_absent` Django signal emitted on ABSENT records
 - **Teacher submission** - REST endpoint for daily/subject attendance logs
 - **Absence tracking** - Student absence count and recent absences summary
+
+### Grading & GPA Calculation
+- **AssessmentCategory** - Weighted categories (e.g., Midterm 30%, Final 50%) with total weight validation
+- **Grade** - Student scores per assessment with percentage and weighted score properties
+- **Grade recording** - `record_student_grades()` with `@transaction.atomic` for bulk mark entry
+- **Subject total** - `calculate_subject_total()` aggregates weighted scores per subject
+- **Report card** - `get_student_report_card()` calculates overall weighted percentage and GPA
+- **GPA scale** - 4.0 scale (A=4.0, B=3.0, C=2.0, D=1.0, F=0.0) with letter grades
+- **Teacher mark entry** - REST endpoint for bulk grade submission per assessment category
+- **Student self-service** - Students can view their own report cards
 
 ### REST Framework Configuration
 - Standard JSON formatting
@@ -191,6 +215,20 @@ sms/
 | `/api/attendance/bulk-submit/` | POST | Bulk submit daily/subject attendance | Teacher |
 | `/api/attendance/subject/<uuid>/date/<str>/` | GET | Subject+date attendance lookup | Director/Teacher |
 | `/api/attendance/student/<uuid>/absences/` | GET | Student absence summary | Director/Teacher |
+
+### Grading & GPA
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/grading/categories/` | GET/POST | List/Create assessment categories | Director/Teacher |
+| `/api/grading/categories/<uuid>/` | GET/PUT/PATCH/DELETE | Assessment category detail | Director/Teacher |
+| `/api/grading/grades/` | GET | List grades (filterable) | Yes |
+| `/api/grading/grades/<uuid>/` | GET/PUT/PATCH/DELETE | Grade detail | Director/Teacher |
+| `/api/grading/grades/record/` | POST | Record single grade | Teacher |
+| `/api/grading/grades/bulk-submit/` | POST | Bulk submit grades per category | Teacher |
+| `/api/grading/subject-total/<uuid>/<uuid>/` | GET | Subject weighted total | Director/Teacher |
+| `/api/grading/report-card/<uuid>/<uuid>/` | GET | Full report card (overall %, GPA) | Yes |
+| `/api/grading/my-report-card/<uuid>/` | GET | Student's own report card | Yes |
 
 ## Setup
 
@@ -392,6 +430,29 @@ curl -X GET http://localhost:8000/api/attendance/student/<student-uuid>/absences
   -H "Authorization: Bearer <teacher-access-token>"
 ```
 
+### Bulk Submit Grades (Teacher)
+
+```bash
+curl -X POST http://localhost:8000/api/grading/grades/bulk-submit/ \
+  -H "Authorization: Bearer <teacher-access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assessment_category_id": "<category-uuid>",
+    "grades": [
+      { "student_id": "<student-uuid-1>", "score": 85, "max_score": 100 },
+      { "student_id": "<student-uuid-2>", "score": 72, "max_score": 100, "remarks": "Needs improvement" },
+      { "student_id": "<student-uuid-3>", "score": 95, "max_score": 100 }
+    ]
+  }'
+```
+
+### Get Student Report Card
+
+```bash
+curl -X GET http://localhost:8000/api/grading/report-card/<student-uuid>/<academic-year-uuid>/ \
+  -H "Authorization: Bearer <director-access-token>"
+```
+
 ## Models
 
 ### AcademicYear
@@ -498,6 +559,32 @@ curl -X GET http://localhost:8000/api/attendance/student/<student-uuid>/absences
 | recorded_by | FK | User who recorded (teacher/staff) |
 
 > **Unique constraint**: `(student, subject_assignment, date)`
+
+### AssessmentCategory
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| name | String | Category name (e.g., "Midterm") |
+| subject_assignment | FK | SubjectAssignment |
+| weight | Decimal | Weight percentage (e.g., 30.00) |
+| description | Text | Optional description |
+
+> **Unique constraint**: `(name, subject_assignment)`
+> **Weight validation**: Total weights per subject assignment cannot exceed 100%
+
+### Grade
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| student | FK | StudentProfile |
+| assessment_category | FK | AssessmentCategory |
+| score | Decimal | Student's raw score |
+| max_score | Decimal | Maximum possible score |
+| remarks | Text | Optional teacher remarks |
+| recorded_by | FK | User who recorded (teacher/staff) |
+
+> **Unique constraint**: `(student, assessment_category)`
+> **Properties**: `percentage` = (score/max_score)*100, `weighted_score` = percentage * (weight/100)
 
 ### Custom Signals
 
