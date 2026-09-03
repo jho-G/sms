@@ -53,15 +53,30 @@ sms/
     │   │   └── urls.py           # API URL patterns
     │   └── migrations/
     │
-    └── enrollment/               # Enrollment & Profile Management
+    ├── enrollment/               # Enrollment & Profile Management
+    │   ├── __init__.py
+    │   ├── models.py             # StudentProfile, TeacherProfile, ParentProfile, StudentGuardian
+    │   ├── services.py           # Business logic (register_student, link_parent_to_student)
+    │   ├── selectors.py          # Query functions (get_student_guardians, get_parent_children)
+    │   ├── api/
+    │   │   ├── __init__.py
+    │   │   ├── serializers.py    # API serializers
+    │   │   ├── views.py          # Profile CRUD & guardian management views
+    │   │   └── urls.py           # API URL patterns
+    │   └── migrations/
+    │
+    └── attendance/               # Attendance Tracking & Event Signals
         ├── __init__.py
-        ├── models.py             # StudentProfile, TeacherProfile, ParentProfile, StudentGuardian
-        ├── services.py           # Business logic (register_student, link_parent_to_student)
-        ├── selectors.py          # Query functions (get_student_guardians, get_parent_children)
+        ├── apps.py               # AppConfig with signal wiring in ready()
+        ├── models.py             # Attendance (PRESENT/ABSENT/LATE/EXCUSED)
+        ├── services.py           # bulk_mark_attendance with @transaction.atomic
+        ├── selectors.py          # Query functions (by student, subject, date)
+        ├── signals.py            # Custom student_marked_absent signal
+        ├── admin.py              # Django admin registration
         ├── api/
         │   ├── __init__.py
-        │   ├── serializers.py    # API serializers
-        │   ├── views.py          # Profile CRUD & guardian management views
+        │   ├── serializers.py    # API serializers (read, create, bulk submit)
+        │   ├── views.py          # DRF views (bulk submit, list, detail, summary)
         │   └── urls.py           # API URL patterns
         └── migrations/
 ```
@@ -93,6 +108,15 @@ sms/
 - **TeacherProfile** - Teacher profiles with employee ID, department, qualifications
 - **ParentProfile** - Parent profiles with occupation, address, secondary contact
 - **StudentGuardian** - Junction model linking parents to children with relationship type and primary flag
+
+### Attendance Tracking & Event Signals
+- **Attendance** - Records student attendance per subject assignment and date
+- **Status choices** - PRESENT, ABSENT, LATE, EXCUSED
+- **Unique constraint** - Per student + subject assignment + date
+- **Bulk marking** - `bulk_mark_attendance()` with `@transaction.atomic` for all-or-nothing writes
+- **Decoupled events** - Custom `student_marked_absent` Django signal emitted on ABSENT records
+- **Teacher submission** - REST endpoint for daily/subject attendance logs
+- **Absence tracking** - Student absence count and recent absences summary
 
 ### REST Framework Configuration
 - Standard JSON formatting
@@ -156,6 +180,17 @@ sms/
 | `/api/enrollment/guardians/student/<uuid>/` | GET | Guardians of a student | Yes |
 | `/api/enrollment/guardians/parent/<uuid>/` | GET | Children of a parent | Yes |
 | `/api/enrollment/guardians/set-primary/` | POST | Set primary guardian | Yes |
+
+### Attendance
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/attendance/` | GET | List attendance records (filterable) | Yes |
+| `/api/attendance/<uuid>/` | GET/PUT/PATCH/DELETE | Attendance record detail | Director/Teacher |
+| `/api/attendance/record/` | POST | Create/update single attendance | Teacher |
+| `/api/attendance/bulk-submit/` | POST | Bulk submit daily/subject attendance | Teacher |
+| `/api/attendance/subject/<uuid>/date/<str>/` | GET | Subject+date attendance lookup | Director/Teacher |
+| `/api/attendance/student/<uuid>/absences/` | GET | Student absence summary | Director/Teacher |
 
 ## Setup
 
@@ -318,6 +353,45 @@ curl -X POST http://localhost:8000/api/academics/assignments/ \
   }'
 ```
 
+### Bulk Submit Attendance (Teacher)
+
+```bash
+curl -X POST http://localhost:8000/api/attendance/bulk-submit/ \
+  -H "Authorization: Bearer <teacher-access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subject_assignment_id": "<assignment-uuid>",
+    "date": "2026-09-03",
+    "records": [
+      { "student_id": "<student-uuid-1>", "status": "PRESENT" },
+      { "student_id": "<student-uuid-2>", "status": "ABSENT", "remarks": "No show" },
+      { "student_id": "<student-uuid-3>", "status": "LATE", "remarks": "Arrived 10 min late" }
+    ]
+  }'
+```
+
+### Record Single Attendance (Teacher)
+
+```bash
+curl -X POST http://localhost:8000/api/attendance/record/ \
+  -H "Authorization: Bearer <teacher-access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student": "<student-uuid>",
+    "subject_assignment": "<assignment-uuid>",
+    "date": "2026-09-03",
+    "status": "ABSENT",
+    "remarks": "Parent notified"
+  }'
+```
+
+### Get Student Absence Summary
+
+```bash
+curl -X GET http://localhost:8000/api/attendance/student/<student-uuid>/absences/ \
+  -H "Authorization: Bearer <teacher-access-token>"
+```
+
 ## Models
 
 ### AcademicYear
@@ -411,6 +485,25 @@ curl -X POST http://localhost:8000/api/academics/assignments/ \
 | student | FK | StudentProfile |
 | relationship | String | FATHER/MOTHER/GUARDIAN/SIBLING/OTHER |
 | is_primary | Boolean | Primary guardian flag |
+
+### Attendance
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| student | FK | StudentProfile |
+| subject_assignment | FK | SubjectAssignment |
+| date | Date | Attendance date |
+| status | String | PRESENT/ABSENT/LATE/EXCUSED |
+| remarks | Text | Optional teacher remarks |
+| recorded_by | FK | User who recorded (teacher/staff) |
+
+> **Unique constraint**: `(student, subject_assignment, date)`
+
+### Custom Signals
+
+| Signal | Description |
+|--------|-------------|
+| `student_marked_absent` | Emitted when an ABSENT record is created or status changes to ABSENT. Provides `student_id`, `date`, `subject` kwargs. |
 
 ## Permissions
 
