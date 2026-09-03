@@ -21,6 +21,8 @@ urlpatterns = [
     path("api/enrollment/", include("enrollment.api.urls")),
     # Attendance API
     path("api/attendance/", include("attendance.api.urls")),
+    # Grading API
+    path("api/grading/", include("grading.api.urls")),
 ]
 
 # Serve media files in development
