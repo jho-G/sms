@@ -117,9 +117,10 @@ class LogoutView(APIView):
     """
     POST /api/auth/logout/
     Blacklist the refresh token to log out.
+    Allows unauthenticated access so logout works even if access token is expired.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         try:
