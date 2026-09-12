@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -214,20 +215,30 @@ class ChangePasswordView(APIView):
                 old_password=serializer.validated_data["old_password"],
                 new_password=serializer.validated_data["new_password"],
             )
-            return Response(
-                {
-                    "success": True,
-                    "message": "Password changed successfully.",
-                },
-                status=status.HTTP_200_OK,
-            )
         except ValueError as e:
+            # Wrong current password.
             return Response(
                 {
                     "success": False,
-                    "error": {
-                        "message": str(e),
-                    },
+                    "error": {"message": str(e)},
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        except DjangoValidationError as e:
+            # The new password failed Django's validators; report a 400 with
+            # the reasons rather than letting it bubble up as a 500.
+            return Response(
+                {
+                    "success": False,
+                    "error": {"message": ", ".join(e.messages)},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Password changed successfully.",
+            },
+            status=status.HTTP_200_OK,
+        )
