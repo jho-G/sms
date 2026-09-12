@@ -143,11 +143,78 @@ sms/
 - **Student self-service** - Students can view their own report cards
 
 ### REST Framework Configuration
-- Standard JSON formatting
+- Consistent `{success, data}` response envelope on every endpoint
 - JWT/Session/Basic authentication
 - Pagination (20 items per page)
 - Throttling (100 anon/hour, 1000 user/hour)
 - Custom exception handler for consistent error responses
+
+## Response Format
+
+Every endpoint answers with the same envelope, so a client never has to know
+which DRF base class produced a response.
+
+**Detail routes** put the object under `data`:
+
+```json
+{
+  "success": true,
+  "data": { "id": "3f2c...", "name": "2024-2025", "is_active": true }
+}
+```
+
+**List routes** nest the paginated block under `data`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "count": 12,
+    "next": "http://localhost:8000/api/academics/years/?page=2",
+    "previous": null,
+    "results": [ { "id": "3f2c...", "name": "2024-2025" } ]
+  }
+}
+```
+
+**Writes** may add a `message`:
+
+```json
+{
+  "success": true,
+  "message": "Academic year created successfully.",
+  "data": { "id": "3f2c...", "name": "2024-2025" }
+}
+```
+
+**Errors** carry `error` instead of `data`:
+
+```json
+{
+  "success": false,
+  "error": {
+    "status_code": 403,
+    "message": "You do not have permission to perform this action.",
+    "details": { "detail": "..." }
+  }
+}
+```
+
+So `body.data.results ?? body.data` reads any successful response. The
+envelope is applied by `common.renderers.EnvelopeJSONRenderer`; views that
+build their own envelope pass through untouched.
+
+## Identifiers
+
+Every model uses a **UUID primary key**. `authentication.User` declares its
+own; all other models inherit one from `common.models.TimeStampedModel`. All
+routes use the `<uuid:...>` path converter and the bulk-submit serializers
+take `UUIDField` inputs, so the two agree.
+
+Note that attendance, grades and guardian links are keyed by
+**`StudentProfile` / `ParentProfile` UUIDs**, not by the `User` UUID a client
+holds after login. Call `GET /api/enrollment/me/` to resolve the signed-in
+user's own profile.
 
 ## API Endpoints
 
@@ -155,12 +222,17 @@ sms/
 
 | Endpoint | Method | Description | Auth Required |
 |----------|--------|-------------|---------------|
-| `/api/auth/register/` | POST | Register a new user | No |
+| `/api/auth/register/` | POST | Register a new user | No (see note) |
 | `/api/auth/login/` | POST | Login and get JWT tokens | No |
 | `/api/auth/logout/` | POST | Blacklist refresh token | Yes |
 | `/api/auth/me/` | GET | Get current user profile | Yes |
 | `/api/auth/me/` | PUT/PATCH | Update current user profile | Yes |
 | `/api/auth/change-password/` | POST | Change password | Yes |
+
+> **Registration:** anonymous callers may only create `STUDENT` or `PARENT`
+> accounts and receive a token pair. Creating a `DIRECTOR` or `TEACHER`
+> requires an authenticated director, and no tokens are issued in that case
+> so the director's own session is preserved.
 
 ### JWT Token Management
 
@@ -192,18 +264,31 @@ sms/
 
 | Endpoint | Method | Description | Auth Required |
 |----------|--------|-------------|---------------|
-| `/api/enrollment/students/` | GET/POST | List/Create student profiles | Yes |
-| `/api/enrollment/students/<uuid>/` | GET/PUT/PATCH/DELETE | Student profile detail | Yes |
-| `/api/enrollment/students/by-section/<uuid>/` | GET | Students in a section | Yes |
-| `/api/enrollment/teachers/` | GET/POST | List/Create teacher profiles | Yes |
-| `/api/enrollment/teachers/<uuid>/` | GET/PUT/PATCH/DELETE | Teacher profile detail | Yes |
-| `/api/enrollment/parents/` | GET/POST | List/Create parent profiles | Yes |
-| `/api/enrollment/parents/<uuid>/` | GET/PUT/PATCH/DELETE | Parent profile detail | Yes |
-| `/api/enrollment/guardians/` | GET/POST | List/Create guardian links | Yes |
-| `/api/enrollment/guardians/<uuid>/` | GET/DELETE | Guardian link detail/unlink | Yes |
-| `/api/enrollment/guardians/student/<uuid>/` | GET | Guardians of a student | Yes |
-| `/api/enrollment/guardians/parent/<uuid>/` | GET | Children of a parent | Yes |
-| `/api/enrollment/guardians/set-primary/` | POST | Set primary guardian | Yes |
+| `/api/enrollment/me/` | GET | Resolve caller's own profile UUID | Yes |
+| `/api/enrollment/students/` | GET | List students in scope | Yes (scoped) |
+| `/api/enrollment/students/` | POST | Create student profile | Director |
+| `/api/enrollment/students/<uuid>/` | GET | Student profile detail | Director/Teacher/self |
+| `/api/enrollment/students/<uuid>/` | PUT/PATCH/DELETE | Modify student profile | Director |
+| `/api/enrollment/students/by-section/<uuid>/` | GET | Section roster | Director/Teacher |
+| `/api/enrollment/teachers/` | GET | List teachers in scope | Yes (scoped) |
+| `/api/enrollment/teachers/` | POST | Create teacher profile | Director |
+| `/api/enrollment/teachers/<uuid>/` | GET | Teacher profile detail | Director/self |
+| `/api/enrollment/teachers/<uuid>/` | PUT/PATCH/DELETE | Modify teacher profile | Director |
+| `/api/enrollment/parents/` | GET | List parents in scope | Yes (scoped) |
+| `/api/enrollment/parents/` | POST | Create parent profile | Director |
+| `/api/enrollment/parents/<uuid>/` | GET | Parent profile detail | Director/self |
+| `/api/enrollment/parents/<uuid>/` | PUT/PATCH/DELETE | Modify parent profile | Director |
+| `/api/enrollment/guardians/` | GET | List guardian links in scope | Yes (scoped) |
+| `/api/enrollment/guardians/` | POST | Create guardian link | Director |
+| `/api/enrollment/guardians/<uuid>/` | GET | Guardian link detail | Director/participant |
+| `/api/enrollment/guardians/<uuid>/` | DELETE | Unlink | Director |
+| `/api/enrollment/guardians/student/<uuid>/` | GET | Guardians of a student | Director/participant |
+| `/api/enrollment/guardians/parent/<uuid>/` | GET | Children of a parent | Director/participant |
+| `/api/enrollment/guardians/set-primary/` | POST | Set primary guardian | Director |
+
+> **Scoped** means the result set is narrowed to what the caller may see: a
+> director and teacher see the whole school, a student sees only their own
+> record, and a parent only their children's.
 
 ### Attendance
 
@@ -249,12 +334,20 @@ pip install -r requirements.txt
 
 ### 3. Environment Variables
 
-Create or update `.env` file:
+Create or update `.env` (see `.env.example`):
 
 ```env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+`DEBUG` defaults to **False**, and `SECRET_KEY` is required whenever `DEBUG`
+is off — the app refuses to start rather than fall back to a known key.
+Generate one with:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
 ### 4. Run Migrations
@@ -269,11 +362,52 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 6. Run Development Server
+### 6. Seed Demo Data (optional)
+
+Creates a coherent demo school — one academic year, a section, two subjects
+with a teacher assigned, four students, assessment categories, and a
+fortnight of attendance and marks. It also creates the four accounts the
+login page's demo buttons use.
+
+```bash
+python manage.py seed_demo          # idempotent
+python manage.py seed_demo --flush  # wipe demo rows first
+```
+
+| Role | Email | Password |
+|------|-------|----------|
+| Director | director@sms.com | director123 |
+| Teacher | teacher@sms.com | teacher123 |
+| Student | student@sms.com | student123 |
+| Parent | parent@sms.com | parent123 |
+
+### 7. Run Development Server
 
 ```bash
 python manage.py runserver
 ```
+
+### 8. Serve the Frontend
+
+The frontend is static and expects the API at `http://localhost:8000/api`.
+Serve it over HTTP rather than opening the files directly, so the origin
+matches the CORS allowlist:
+
+```bash
+cd ../frontend && python -m http.server 8080
+```
+
+Then open <http://localhost:8080/>.
+
+## Running Tests
+
+```bash
+python manage.py test
+```
+
+The suites cover the API contract that the browser client depends on:
+response envelope shape, UUID routing, role scoping on reads, teacher
+ownership on writes, and the registration privilege boundary.
 
 ## Usage Examples
 
@@ -603,12 +737,34 @@ curl -X GET http://localhost:8000/api/grading/report-card/<student-uuid>/<academ
 | `IsStudent` | Allow access only to STUDENT role |
 | `IsParent` | Allow access only to PARENT role |
 | `IsDirectorOrTeacher` | Allow access to DIRECTOR or TEACHER roles |
+| `IsDirectorOrTeacherReadOnly` | Director full access; teacher read-only |
+| `IsDirectorOrProfileOwner` | Director full; teacher read; subject reads own |
+| `IsDirectorOrGuardianParticipant` | Director manages links; named parent/student may read |
 
 ### Object-Level Permissions
 
 | Permission | Description |
 |------------|-------------|
 | `IsOwner` | Allow access only to object owner |
+
+### Read Scoping
+
+Permission classes gate access to a *view*; querysets are additionally
+narrowed so that a caller cannot reach another user's rows by changing an ID
+or a query parameter. The scoping helpers live beside the queries they
+constrain:
+
+| Helper | Applies to |
+|--------|------------|
+| `attendance.selectors.scope_attendance_to_user` | Attendance list & detail |
+| `grading.selectors.scope_grades_to_user` | Grade list & detail |
+| `grading.selectors.scope_categories_to_user` | Assessment categories |
+| `grading.selectors.can_view_student_report` | Report cards, subject totals |
+| `academics.api.views._scope_assignments_to_caller` | Subject assignments |
+| `enrollment.api.views._visible_student_profiles` | Student roster |
+
+Teachers are additionally checked for **ownership** on every write: they may
+only record attendance and marks against their own subject assignments.
 
 ## Dependencies
 
