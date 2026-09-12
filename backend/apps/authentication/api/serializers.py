@@ -32,6 +32,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
     Serializer for creating new users.
     """
 
+    #: Roles that grant authority over other users' data and therefore may
+    #: never be self-assigned through public registration.
+    PRIVILEGED_ROLES = frozenset({User.Role.DIRECTOR, User.Role.TEACHER})
+
     password = serializers.CharField(
         write_only=True,
         min_length=8,
@@ -60,6 +64,26 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """Check if email already exists."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate_role(self, value):
+        """
+        Prevent privilege escalation through the open registration endpoint.
+
+        Anyone could previously POST ``{"role": "DIRECTOR"}`` to
+        ``/api/auth/register/`` and gain full control of the school, so
+        DIRECTOR and TEACHER accounts may now only be created by a director.
+        """
+        if value not in self.PRIVILEGED_ROLES:
+            return value
+
+        request = self.context.get("request")
+        actor = getattr(request, "user", None)
+
+        if not (actor and actor.is_authenticated and actor.role == User.Role.DIRECTOR):
+            raise serializers.ValidationError(
+                "Only a director can create director or teacher accounts."
+            )
         return value
 
     def validate(self, attrs):

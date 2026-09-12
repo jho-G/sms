@@ -9,6 +9,7 @@ from authentication.api.serializers import (
     ChangePasswordSerializer,
     LoginSerializer,
     UserCreateSerializer,
+    UserProfileUpdateSerializer,
     UserSerializer,
 )
 from authentication.services import change_password
@@ -20,6 +21,11 @@ class RegisterView(generics.CreateAPIView):
     """
     POST /api/auth/register/
     Register a new user account.
+
+    Self-registration (anonymous caller) returns a token pair so the new user
+    is signed straight in. When a director creates an account on someone
+    else's behalf no tokens are issued -- returning them made the browser
+    client overwrite the director's own session with the new user's.
     """
 
     serializer_class = UserCreateSerializer
@@ -30,20 +36,21 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
+        is_self_registration = not request.user.is_authenticated
+
+        payload = {"user": UserSerializer(user).data}
+        if is_self_registration:
+            refresh = RefreshToken.for_user(user)
+            payload["tokens"] = {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            }
 
         return Response(
             {
                 "success": True,
                 "message": "User registered successfully.",
-                "data": {
-                    "user": UserSerializer(user).data,
-                    "tokens": {
-                        "access": str(refresh.access_token),
-                        "refresh": str(refresh),
-                    },
-                },
+                "data": payload,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -171,8 +178,6 @@ class MeView(generics.RetrieveUpdateAPIView):
         )
 
     def update(self, request, *args, **kwargs):
-        from apps.authentication.api.serializers import UserProfileUpdateSerializer
-
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = UserProfileUpdateSerializer(
