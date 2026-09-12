@@ -110,9 +110,18 @@ class APIClient {
                 throw new Error('Token refresh failed');
             }
 
-            const data = await response.json();
-            this.setTokens(data.access, data.refresh || refreshToken);
-            return data.access;
+            // The refresh endpoint answers with the shared envelope, so the
+            // tokens live under `data`. Reading them from the top level stored
+            // `undefined` and signed the user out on the next request.
+            const body = await response.json();
+            const payload = body.data ?? body;
+
+            if (!payload?.access) {
+                throw new Error('Token refresh failed');
+            }
+
+            this.setTokens(payload.access, payload.refresh || refreshToken);
+            return payload.access;
         } catch (error) {
             this.clearTokens();
             throw error;
