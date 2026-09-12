@@ -116,9 +116,8 @@ class ClassSectionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
     def get_student_count(self, obj):
-        """Get the number of students in this section (placeholder)."""
-        # This will be implemented when the student module is created
-        return 0
+        """Number of active students currently enrolled in this section."""
+        return obj.students.filter(is_active=True).count()
 
 
 class ClassSectionCreateSerializer(serializers.ModelSerializer):
