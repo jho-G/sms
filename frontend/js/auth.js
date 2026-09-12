@@ -5,7 +5,7 @@
 // Check if already authenticated
 document.addEventListener('DOMContentLoaded', () => {
     if (api.isAuthenticated()) {
-        window.location.href = '/dashboard.html';
+        window.location.href = DASHBOARD_PAGE;
         return;
     }
 });
@@ -63,6 +63,7 @@ function hideMessages() {
 }
 
 // Fill demo credentials
+// These match the accounts created by `python manage.py seed_demo`.
 function fillDemo(role) {
     const credentials = {
         director: { email: 'director@sms.com', password: 'director123' },
@@ -74,7 +75,7 @@ function fillDemo(role) {
     const cred = credentials[role];
     document.getElementById('login-email').value = cred.email;
     document.getElementById('login-password').value = cred.password;
-    
+
     // Switch to login tab if not already there
     switchTab('login');
 }
@@ -104,7 +105,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         if (response.success) {
             showSuccess('Login successful! Redirecting...');
             setTimeout(() => {
-                window.location.href = '/dashboard.html';
+                window.location.href = DASHBOARD_PAGE;
             }, 500);
         }
     } catch (error) {
@@ -163,7 +164,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         if (response.success) {
             showSuccess('Account created successfully! Redirecting...');
             setTimeout(() => {
-                window.location.href = '/dashboard.html';
+                window.location.href = DASHBOARD_PAGE;
             }, 500);
         }
     } catch (error) {

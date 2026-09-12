@@ -5,6 +5,53 @@
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
+/**
+ * Page to send the user back to when their session ends.
+ * Resolved relative to the current document so the app keeps working when
+ * it is served from a sub-path or opened straight off disk.
+ */
+const LOGIN_PAGE = 'index.html';
+const DASHBOARD_PAGE = 'dashboard.html';
+
+/**
+ * Pull an array out of an API response.
+ *
+ * Every endpoint answers with `{success, data}`; `data` is the object for
+ * detail routes and `{count, next, previous, results}` for paginated list
+ * routes. This accepts either, plus a bare array, and never returns
+ * undefined - callers can always `.map()` the result.
+ */
+function listOf(response) {
+    const payload = response?.data ?? response;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.results)) return payload.results;
+    return [];
+}
+
+/**
+ * Pull a single object out of an API response, or null when absent.
+ */
+function itemOf(response) {
+    return response?.data ?? null;
+}
+
+/**
+ * Escape text before it goes into an innerHTML template.
+ *
+ * Names, remarks and IDs all come from the database and are rendered into
+ * markup; a teacher's remark containing markup would otherwise execute in a
+ * student's browser.
+ */
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 class APIClient {
     constructor() {
         this.baseURL = API_BASE_URL;
@@ -105,14 +152,19 @@ class APIClient {
                 } catch (refreshError) {
                     // Refresh failed, redirect to login
                     this.clearTokens();
-                    window.location.href = '/index.html';
+                    window.location.href = LOGIN_PAGE;
                     throw new Error('Session expired. Please login again.');
                 }
             }
 
+            // 204 No Content carries no body to parse.
+            if (response.status === 204) {
+                return { success: true, data: null };
+            }
+
             // Parse response
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw {
                     status: response.status,
@@ -148,17 +200,37 @@ class APIClient {
         return data;
     }
 
+    /**
+     * Self-registration. Signs the new account straight in, so this replaces
+     * whatever session is currently stored.
+     */
     async register(userData) {
         const data = await this.request('/auth/register/', {
             method: 'POST',
             body: JSON.stringify(userData),
         });
-        
-        if (data.success && data.data) {
+
+        if (data.success && data.data?.tokens) {
             this.setTokens(data.data.tokens.access, data.data.tokens.refresh);
             this.setUser(data.data.user);
         }
         return data;
+    }
+
+    /**
+     * Create an account on someone else's behalf (director adding a student,
+     * teacher or parent).
+     *
+     * Deliberately never touches the stored tokens. `register()` used to be
+     * reused here, and because the server issued a token pair for the new
+     * account the director was silently swapped into the account they had
+     * just created.
+     */
+    async createUser(userData) {
+        return await this.request('/auth/register/', {
+            method: 'POST',
+            body: JSON.stringify(userData),
+        });
     }
 
     async logout() {
@@ -190,8 +262,20 @@ class APIClient {
             body: JSON.stringify({
                 old_password: oldPassword,
                 new_password: newPassword,
+                // Required by the serializer; omitting it always returned 400.
+                new_password_confirm: newPassword,
             }),
         });
+    }
+
+    /**
+     * Resolve the signed-in user's own domain profile.
+     *
+     * Attendance, grades and guardian links are keyed by StudentProfile /
+     * ParentProfile UUIDs, not the User UUID held in localStorage.
+     */
+    async getMyProfile() {
+        return await this.request('/enrollment/me/');
     }
 
     // Academic Years API
