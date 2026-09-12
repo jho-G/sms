@@ -22,10 +22,20 @@ const DASHBOARD_PAGE = 'dashboard.html';
  * undefined - callers can always `.map()` the result.
  */
 function listOf(response) {
-    const payload = response?.data ?? response;
+    const payload = unwrap(response);
     if (Array.isArray(payload)) return payload;
     if (Array.isArray(payload?.results)) return payload.results;
     return [];
+}
+
+/**
+ * Return the `data` block of an enveloped response.
+ *
+ * Falls back to the response itself so callers work whether or not the
+ * response was wrapped.
+ */
+function unwrap(response) {
+    return response?.data ?? response;
 }
 
 /**
@@ -114,7 +124,7 @@ class APIClient {
             // tokens live under `data`. Reading them from the top level stored
             // `undefined` and signed the user out on the next request.
             const body = await response.json();
-            const payload = body.data ?? body;
+            const payload = unwrap(body);
 
             if (!payload?.access) {
                 throw new Error('Token refresh failed');
@@ -201,10 +211,11 @@ class APIClient {
             method: 'POST',
             body: JSON.stringify({ email, password }),
         });
-        
-        if (data.success && data.data) {
-            this.setTokens(data.data.tokens.access, data.data.tokens.refresh);
-            this.setUser(data.data.user);
+
+        const payload = unwrap(data);
+        if (data.success && payload?.tokens) {
+            this.setTokens(payload.tokens.access, payload.tokens.refresh);
+            this.setUser(payload.user);
         }
         return data;
     }
@@ -219,9 +230,10 @@ class APIClient {
             body: JSON.stringify(userData),
         });
 
-        if (data.success && data.data?.tokens) {
-            this.setTokens(data.data.tokens.access, data.data.tokens.refresh);
-            this.setUser(data.data.user);
+        const payload = unwrap(data);
+        if (data.success && payload?.tokens) {
+            this.setTokens(payload.tokens.access, payload.tokens.refresh);
+            this.setUser(payload.user);
         }
         return data;
     }
