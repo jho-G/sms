@@ -6,7 +6,9 @@ Modular Monolith architecture with apps/ directory.
 import os
 import sys
 from pathlib import Path
+
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,13 +16,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Add apps directory to Python path for app discovery
 sys.path.insert(0, str(BASE_DIR / "apps"))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-production")
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=True, cast=bool)
+# Defaults to False so that forgetting to set DEBUG cannot silently expose
+# tracebacks and the permissive dev CORS policy on a deployed instance.
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config("SECRET_KEY", default="")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-local-development-only-do-not-deploy"
+    else:
+        raise ImproperlyConfigured(
+            "SECRET_KEY must be set when DEBUG is False. "
+            "Generate one with: python -c "
+            "'from django.core.management.utils import get_random_secret_key; "
+            "print(get_random_secret_key())'"
+        )
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -110,9 +128,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    # Standard JSON renderer for consistent API responses
+    # Envelope renderer keeps every response shaped as {"success", "data"}
     "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
+        "common.renderers.EnvelopeJSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
     # Pagination
@@ -137,20 +155,38 @@ REST_FRAMEWORK = {
 
 
 # CORS Settings
+#
+# An explicit allowlist is used in every environment. `CORS_ALLOW_ALL_ORIGINS`
+# used to be switched on whenever DEBUG was true, which contradicts
+# `CORS_ALLOW_CREDENTIALS` and is trivially forgotten on the way to
+# production. Add extra dev origins through the CORS_ALLOWED_ORIGINS env var.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:8000",
-    "http://localhost:8080",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:8000",
-    "http://127.0.0.1:8080",
+    origin.strip()
+    for origin in config(
+        "CORS_ALLOWED_ORIGINS",
+        default=(
+            "http://localhost:3000,http://localhost:5173,"
+            "http://localhost:8000,http://localhost:8080,"
+            "http://127.0.0.1:3000,http://127.0.0.1:5173,"
+            "http://127.0.0.1:8000,http://127.0.0.1:8080"
+        ),
+    ).split(",")
+    if origin.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
-# Allow CORS for file:// protocol (opening HTML directly)
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+# Security headers (enforced once DEBUG is off)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
 
 
 # Internationalization
