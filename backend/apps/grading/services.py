@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from grading.models import AssessmentCategory, Grade
+from common.utils import stringify_uuids
 
 
 @transaction.atomic
@@ -99,7 +100,7 @@ def record_student_grades(
     # Validate all student IDs upfront
     from enrollment.models import StudentProfile
 
-    student_ids = [entry["student_id"] for entry in grade_list]
+    student_ids = stringify_uuids(entry["student_id"] for entry in grade_list)
     students_map = {
         str(s.id): s
         for s in StudentProfile.objects.filter(
@@ -107,7 +108,7 @@ def record_student_grades(
         ).select_related("user")
     }
 
-    missing_ids = set(student_ids) - set(students_map.keys())
+    missing_ids = set(student_ids) - set(students_map)
     if missing_ids:
         raise ValidationError(
             f"Student profiles not found or inactive: {', '.join(missing_ids)}"
@@ -116,7 +117,7 @@ def record_student_grades(
     created_records: List[Grade] = []
 
     for entry in grade_list:
-        student_id = entry["student_id"]
+        student_id = str(entry["student_id"])
         score = Decimal(str(entry["score"]))
         max_score = Decimal(str(entry["max_score"]))
         remarks = entry.get("remarks", "")
