@@ -201,7 +201,10 @@ which DRF base class produced a response.
 ```
 
 So `body.data.results ?? body.data` reads any successful response. The
-envelope is applied by `common.renderers.EnvelopeJSONRenderer`; views that
+envelope is applied in two places from one implementation
+(`common.envelope.envelop`): `common.middleware.EnvelopeMiddleware` wraps the
+in-flight `response.data` before the response is rendered, and
+`common.renderers.EnvelopeJSONRenderer` wraps the serialized body. Views that
 build their own envelope pass through untouched.
 
 ## Identifiers
@@ -215,6 +218,10 @@ Note that attendance, grades and guardian links are keyed by
 **`StudentProfile` / `ParentProfile` UUIDs**, not by the `User` UUID a client
 holds after login. Call `GET /api/enrollment/me/` to resolve the signed-in
 user's own profile.
+
+Service functions accept UUIDs as either `uuid.UUID` objects or strings; the
+bulk services normalise through `common.utils.stringify_uuids` before the
+lookup so a serializer's `UUIDField` output works directly.
 
 ## API Endpoints
 
@@ -259,6 +266,9 @@ user's own profile.
 | `/api/academics/assignments/<uuid>/` | GET/DELETE | Assignment detail/deactivate | Director |
 | `/api/academics/assignments/teacher/<uuid>/` | GET | Teacher's assignments | Director |
 | `/api/academics/assignments/section/<uuid>/` | GET | Section's assignments | Director |
+
+> **Assignments:** `academic_year` may be omitted when creating a subject
+> assignment; the service then falls back to the currently active year.
 
 ### Enrollment & Profiles
 
