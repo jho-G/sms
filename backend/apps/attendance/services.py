@@ -6,6 +6,7 @@ from django.db import transaction
 
 from attendance.models import Attendance
 from attendance.signals import student_marked_absent
+from common.utils import stringify_uuids
 
 
 @transaction.atomic
@@ -56,7 +57,7 @@ def bulk_mark_attendance(
     # Validate all student IDs upfront
     from enrollment.models import StudentProfile
 
-    student_ids = [entry["student_id"] for entry in attendance_data]
+    student_ids = stringify_uuids(entry["student_id"] for entry in attendance_data)
     students_map = {
         str(s.id): s
         for s in StudentProfile.objects.filter(
@@ -64,7 +65,7 @@ def bulk_mark_attendance(
         ).select_related("user")
     }
 
-    missing_ids = set(student_ids) - set(students_map.keys())
+    missing_ids = set(student_ids) - set(students_map)
     if missing_ids:
         raise ValidationError(
             f"Student profiles not found or inactive: {', '.join(missing_ids)}"
@@ -73,7 +74,7 @@ def bulk_mark_attendance(
     created_records: List[Attendance] = []
 
     for entry in attendance_data:
-        student_id = entry["student_id"]
+        student_id = str(entry["student_id"])
         status = entry.get("status", Attendance.Status.PRESENT)
         remarks = entry.get("remarks", "")
 
