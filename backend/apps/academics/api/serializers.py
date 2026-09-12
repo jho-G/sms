@@ -233,6 +233,16 @@ class SubjectAssignmentCreateSerializer(serializers.ModelSerializer):
     Serializer for creating SubjectAssignment.
     """
 
+    #: Optional so the caller can let the service fall back to the active
+    #: year. Declared explicitly because the non-null model FK would
+    #: otherwise make DRF require it and the fallback was unreachable.
+    academic_year = serializers.PrimaryKeyRelatedField(
+        queryset=AcademicYear.objects.all(),
+        required=False,
+        allow_null=True,
+        help_text="Defaults to the active academic year when omitted.",
+    )
+
     class Meta:
         model = SubjectAssignment
         fields = [
