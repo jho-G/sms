@@ -251,6 +251,12 @@ class SubjectAssignmentCreateSerializer(serializers.ModelSerializer):
             "section",
             "academic_year",
         ]
+        #: The model's unique_together includes the non-null academic_year,
+        #: so DRF would attach a UniqueTogetherValidator that forces the field
+        #: to be present regardless of required=False. Uniqueness is checked
+        #: in ``assign_teacher_to_subject`` once the active-year fallback has
+        #: resolved the year, so the implicit validator is dropped here.
+        validators = []
 
     def validate_teacher(self, value):
         """Validate that the user is a teacher."""
