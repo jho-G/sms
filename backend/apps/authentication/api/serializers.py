@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 User = get_user_model()
@@ -84,6 +86,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Only a director can create director or teacher accounts."
             )
+        return value
+
+    def validate_password(self, value):
+        """
+        Run Django's password validators up front.
+
+        ``create_user`` raises ``django.core.exceptions.ValidationError``,
+        which DRF does not recognise, so a weak password used to surface as a
+        500 instead of a 400 with a usable message.
+        """
+        try:
+            validate_password(value)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(list(exc.messages))
         return value
 
     def validate(self, attrs):
