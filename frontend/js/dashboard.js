@@ -517,6 +517,53 @@ async function loadDashboard() {
     loadDashboardStats();
 }
 
+// Interactive Number Count-up Animation
+function animateNumberCount(target, endValue, duration = 800, suffix = '') {
+    const el = typeof target === 'string' ? document.getElementById(target) : target;
+    if (!el) return;
+
+    const num = typeof endValue === 'number' ? endValue : parseFloat(endValue);
+    if (isNaN(num)) {
+        el.textContent = `${endValue}${suffix}`;
+        return;
+    }
+
+    const startTime = performance.now();
+    const startValue = 0;
+
+    const update = (now) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const easeOut = progress * (2 - progress);
+        const current = Math.round(startValue + (num - startValue) * easeOut);
+        el.textContent = `${current}${suffix}`;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            el.textContent = `${num}${suffix}`;
+        }
+    };
+
+    requestAnimationFrame(update);
+}
+
+// Copy to Clipboard Utility with visual feedback
+async function copyToClipboard(text, event) {
+    if (event) event.stopPropagation();
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast(`Copied "${text}" to clipboard!`, 'success', 2000);
+    } catch {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+        showToast(`Copied "${text}" to clipboard!`, 'success', 2000);
+    }
+}
+
 // Load dashboard statistics
 async function loadDashboardStats() {
     const role = currentUser?.role;
@@ -533,9 +580,9 @@ async function loadDashboardStats() {
             const countOf = (response) =>
                 response?.data?.count ?? listOf(response).length;
 
-            document.getElementById('stat-students').textContent = countOf(students);
-            document.getElementById('stat-teachers').textContent = countOf(teachers);
-            document.getElementById('stat-subjects').textContent = countOf(subjects);
+            animateNumberCount('stat-students', countOf(students));
+            animateNumberCount('stat-teachers', countOf(teachers));
+            animateNumberCount('stat-subjects', countOf(subjects));
 
             const activeYear = listOf(years).find((y) => y.is_active);
             document.getElementById('stat-year').textContent = activeYear?.name || 'None';
@@ -545,7 +592,7 @@ async function loadDashboardStats() {
                 .catch(() => null);
             const rows = listOf(assignments);
 
-            document.getElementById('stat-assignments').textContent = rows.length;
+            animateNumberCount('stat-assignments', rows.length);
 
             const sectionIds = [...new Set(rows.map((a) => a.section).filter(Boolean))];
             const rosters = await Promise.all(
@@ -554,14 +601,16 @@ async function loadDashboardStats() {
             const studentIds = new Set(
                 rosters.flatMap((r) => listOf(r).map((s) => s.id))
             );
-            document.getElementById('stat-my-students').textContent = studentIds.size;
+            animateNumberCount('stat-my-students', studentIds.size);
 
             const today = new Date().toISOString().split('T')[0];
             const todays = await api
                 .getAttendanceRecords({ date: today })
                 .catch(() => null);
-            document.getElementById('stat-today-attendance').textContent =
-                todays?.data?.count ?? listOf(todays).length;
+            animateNumberCount(
+                'stat-today-attendance',
+                todays?.data?.count ?? listOf(todays).length
+            );
         } else if (role === 'STUDENT') {
             const profileId = myProfileId();
             if (!profileId) return;
@@ -574,7 +623,7 @@ async function loadDashboardStats() {
                     (r) => r.status === 'PRESENT' || r.status === 'LATE'
                 ).length;
                 const rate = Math.round((present / records.length) * 100);
-                document.getElementById('stat-attendance-rate').textContent = `${rate}%`;
+                animateNumberCount('stat-attendance-rate', rate, 800, '%');
             } else {
                 document.getElementById('stat-attendance-rate').textContent = 'N/A';
             }
@@ -596,7 +645,7 @@ async function loadDashboardStats() {
             const children = listOf(
                 await api.getParentChildren(profileId).catch(() => null)
             );
-            document.getElementById('stat-children').textContent = children.length;
+            animateNumberCount('stat-children', children.length);
 
             const allRecords = await Promise.all(
                 children.map((c) =>
@@ -609,7 +658,7 @@ async function loadDashboardStats() {
                     (r) => r.status === 'PRESENT' || r.status === 'LATE'
                 ).length;
                 const rate = Math.round((present / records.length) * 100);
-                document.getElementById('stat-children-attendance').textContent = `${rate}%`;
+                animateNumberCount('stat-children-attendance', rate, 800, '%');
             } else {
                 document.getElementById('stat-children-attendance').textContent = 'N/A';
             }

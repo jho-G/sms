@@ -104,7 +104,14 @@ function renderStudentsTable(students) {
     table.innerHTML = students.map(student => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-mono text-gray-900">${escapeHtml(student.student_id)}</div>
+                <div class="inline-flex items-center space-x-1.5 font-mono text-sm text-gray-900 group cursor-pointer hover:text-indigo-600 transition" 
+                     onclick="copyToClipboard('${escapeHtml(student.student_id)}', event)" 
+                     title="Click to copy Student ID">
+                    <span>${escapeHtml(student.student_id)}</span>
+                    <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-600 opacity-50 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -368,7 +375,14 @@ async function loadTeachersList() {
         table.innerHTML = teachers.map(teacher => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-mono text-gray-900">${escapeHtml(teacher.employee_id)}</div>
+                    <div class="inline-flex items-center space-x-1.5 font-mono text-sm text-gray-900 group cursor-pointer hover:text-indigo-600 transition" 
+                         onclick="copyToClipboard('${escapeHtml(teacher.employee_id)}', event)" 
+                         title="Click to copy Employee ID">
+                        <span>${escapeHtml(teacher.employee_id)}</span>
+                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-600 opacity-50 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
