@@ -76,35 +76,39 @@ button:focus {
     }
 }
 
-/* Toast animation */
-.toast-enter {
-    animation: toastSlideIn 0.3s ease-out;
+/* Interactive Toast notification styles */
+.toast-item {
+    position: relative;
+    overflow: hidden;
+    min-width: 300px;
+    max-width: 420px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
 }
 
-@keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+.toast-item.toast-enter {
+    transform: translateY(16px) scale(0.96);
+    opacity: 0;
 }
 
-.toast-exit {
-    animation: toastSlideOut 0.3s ease-in forwards;
+.toast-item.toast-active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
-@keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(100%);
-    }
+.toast-item.toast-exit {
+    transform: translateX(115%);
+    opacity: 0;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.65);
+    width: 100%;
+    transform-origin: left center;
 }
 
 /* Loading spinner */

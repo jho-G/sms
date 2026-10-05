@@ -664,34 +664,124 @@ function closeModal() {
     document.getElementById('modal-container').innerHTML = '';
 }
 
-// Toast functions
-function showToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toast-container');
+// Enhanced Interactive Toast Notification System
+function showToast(message, type = 'success', duration = 3500) {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed bottom-4 right-4 z-50 flex flex-col space-y-3 pointer-events-none';
+        document.body.appendChild(toastContainer);
+    }
+
     const toast = document.createElement('div');
-    
-    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-gray-500';
-    const icon = type === 'success' 
-        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
-        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
-    
-    toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 transform transition-all duration-300 translate-x-full`;
+    toast.className = 'toast-item toast-enter pointer-events-auto rounded-xl p-4 text-white shadow-xl flex items-start space-x-3 backdrop-blur-md cursor-pointer select-none';
+
+    // Theme configuration
+    const config = {
+        success: {
+            bg: 'bg-emerald-600/95 border border-emerald-400/30',
+            title: 'Success',
+            icon: `<svg class="w-5 h-5 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>`
+        },
+        error: {
+            bg: 'bg-rose-600/95 border border-rose-400/30',
+            title: 'Error',
+            icon: `<svg class="w-5 h-5 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>`
+        },
+        warning: {
+            bg: 'bg-amber-600/95 border border-amber-400/30',
+            title: 'Warning',
+            icon: `<svg class="w-5 h-5 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>`
+        },
+        info: {
+            bg: 'bg-indigo-600/95 border border-indigo-400/30',
+            title: 'Notice',
+            icon: `<svg class="w-5 h-5 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>`
+        }
+    };
+
+    const currentConfig = config[type] || config.info;
+    toast.className += ` ${currentConfig.bg}`;
+
     toast.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${icon}
-        </svg>
-        <span>${escapeHtml(message)}</span>
+        <div class="mt-0.5">${currentConfig.icon}</div>
+        <div class="flex-1 min-w-0 pr-2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-white/80">${currentConfig.title}</p>
+            <p class="text-sm font-medium leading-snug break-words">${escapeHtml(message)}</p>
+        </div>
+        <button type="button" aria-label="Dismiss notification" class="toast-close text-white/70 hover:text-white transition p-1 -mr-1 rounded-lg hover:bg-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div class="toast-progress"></div>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
-    // Animate in
-    setTimeout(() => toast.classList.remove('translate-x-full'), 10);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.add('translate-x-full');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+
+    // Smooth entrance
+    requestAnimationFrame(() => {
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-active');
+    });
+
+    const progressBar = toast.querySelector('.toast-progress');
+    let remainingTime = duration;
+    let startTime = Date.now();
+    let isPaused = false;
+    let timerId = null;
+
+    const startTimer = () => {
+        startTime = Date.now();
+        progressBar.style.transition = `width ${remainingTime}ms linear`;
+        progressBar.style.width = '0%';
+        timerId = setTimeout(dismissToast, remainingTime);
+    };
+
+    const pauseTimer = () => {
+        if (isPaused) return;
+        isPaused = true;
+        clearTimeout(timerId);
+        const elapsed = Date.now() - startTime;
+        remainingTime = Math.max(0, remainingTime - elapsed);
+        const computedWidth = window.getComputedStyle(progressBar).width;
+        progressBar.style.transition = 'none';
+        progressBar.style.width = computedWidth;
+    };
+
+    const resumeTimer = () => {
+        if (!isPaused || remainingTime <= 0) return;
+        isPaused = false;
+        startTimer();
+    };
+
+    function dismissToast() {
+        clearTimeout(timerId);
+        toast.classList.remove('toast-active');
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 260);
+    }
+
+    // Interactive pause on hover, resume on leave
+    toast.addEventListener('mouseenter', pauseTimer);
+    toast.addEventListener('mouseleave', resumeTimer);
+
+    // Manual close button
+    toast.querySelector('.toast-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        dismissToast();
+    });
+
+    startTimer();
 }
 
 // Utility functions
