@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             api.setUser(currentUser);
             await loadMyProfile();
             updateUserUI();
+            initTheme();
             setupNavigation();
             setupGlobalKeyboardShortcuts();
             navigateTo('dashboard');
@@ -784,6 +785,51 @@ function sortTableByColumn(tbody, colIdx, direction) {
 }
 
 // ============================================================
+// Dark Mode Theme Management
+// ============================================================
+function initTheme() {
+    const savedTheme = localStorage.getItem('sms_theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    applyTheme(isDark);
+}
+
+function applyTheme(isDark) {
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('sms_theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('sms_theme', 'light');
+    }
+    updateThemeToggleIcons(isDark);
+}
+
+function toggleDarkMode() {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyTheme(!isDark);
+    showToast(!isDark ? 'Dark mode enabled' : 'Light mode enabled', 'info');
+}
+
+function updateThemeToggleIcons(isDark) {
+    const moonIcon = document.getElementById('theme-moon-icon');
+    const sunIcon = document.getElementById('theme-sun-icon');
+    if (moonIcon && sunIcon) {
+        if (isDark) {
+            moonIcon.classList.add('hidden');
+            moonIcon.classList.remove('block');
+            sunIcon.classList.remove('hidden');
+            sunIcon.classList.add('block');
+        } else {
+            moonIcon.classList.remove('hidden');
+            moonIcon.classList.add('block');
+            sunIcon.classList.add('hidden');
+            sunIcon.classList.remove('block');
+        }
+    }
+}
+
+// ============================================================
 // Global Command Palette & Keyboard Shortcuts System
 // ============================================================
 let isCommandPaletteOpen = false;
@@ -840,6 +886,7 @@ function getAvailablePaletteItems() {
 
     // General commands
     items.push(
+        { title: 'Toggle Dark / Light Mode', category: 'Preferences', icon: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z', action: () => toggleDarkMode() },
         { title: 'Keyboard Shortcuts Help', category: 'Help', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', action: () => showKeyboardShortcutsModal() },
         { title: 'Refresh Active View', category: 'System', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', action: () => { loadPage(currentPage); showToast('View refreshed', 'info'); } },
         { title: 'Log Out of Account', category: 'Account', icon: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1', action: () => handleLogout() }
