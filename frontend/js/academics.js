@@ -522,6 +522,16 @@ async function loadSectionsPage() {
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="section-search" placeholder="Search sections by name, grade, or room..." 
+                        class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <span id="section-count-badge" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap">0 total</span>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -547,12 +557,16 @@ async function loadSectionsPage() {
     `;
 
     await loadSectionsList();
+    initTableSearchFilter('section-search', 'sections-table', 'section-count-badge');
 }
 
 async function loadSectionsList() {
     try {
         const response = await api.getClassSections();
         const sections = listOf(response);
+        
+        const countBadge = document.getElementById('section-count-badge');
+        if (countBadge) countBadge.textContent = `${sections.length} total`;
         
         const table = document.getElementById('sections-table');
         
@@ -676,6 +690,17 @@ async function loadSubjectsPage() {
             </button>
         </div>
 
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            <div class="relative flex-1 max-w-md">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="subject-search" placeholder="Search subjects by name or course code..." 
+                    class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+            <span id="subject-count-badge" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap">0 total</span>
+        </div>
+
         <div id="subjects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="col-span-full text-center py-12">
                 <div class="animate-pulse text-gray-500">Loading...</div>
@@ -684,6 +709,29 @@ async function loadSubjectsPage() {
     `;
 
     await loadSubjectsList();
+    initSubjectGridSearch();
+}
+
+function initSubjectGridSearch() {
+    const input = document.getElementById('subject-search');
+    const grid = document.getElementById('subjects-grid');
+    const badge = document.getElementById('subject-count-badge');
+    if (!input || !grid) return;
+
+    input.addEventListener('input', () => {
+        const query = input.value.toLowerCase().trim();
+        const cards = Array.from(grid.querySelectorAll('.subject-card'));
+        let visible = 0;
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const matches = !query || text.includes(query);
+            card.style.display = matches ? '' : 'none';
+            if (matches) visible++;
+        });
+        if (badge) {
+            badge.textContent = query ? `Showing ${visible} of ${cards.length}` : `${cards.length} total`;
+        }
+    });
 }
 
 async function loadSubjectsList() {
@@ -692,6 +740,8 @@ async function loadSubjectsList() {
         const subjects = listOf(response);
         
         const grid = document.getElementById('subjects-grid');
+        const badge = document.getElementById('subject-count-badge');
+        if (badge) badge.textContent = `${subjects.length} total`;
         
         if (subjects.length === 0) {
             grid.innerHTML = `
@@ -704,7 +754,7 @@ async function loadSubjectsList() {
         }
 
         grid.innerHTML = subjects.map(subject => `
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="subject-card bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <span class="text-lg font-bold text-green-600">${escapeHtml(subject.code?.substring(0, 3) || 'SUB')}</span>

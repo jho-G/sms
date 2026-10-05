@@ -26,14 +26,21 @@ async function loadStudentsPage() {
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-4 border-b border-gray-200">
-                <div class="flex items-center space-x-4">
-                    <input type="text" id="student-search" placeholder="Search students..." 
-                        class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        oninput="filterStudents(this.value)">
-                    <select id="student-section-filter" onchange="filterStudentsBySection(this.value)"
-                        class="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">All Sections</option>
-                    </select>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="relative flex-1">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="student-search" placeholder="Search by name, student ID, or email..." 
+                            class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <select id="student-section-filter" onchange="filterStudentsBySection(this.value)"
+                            class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2">
+                            <option value="">All Sections</option>
+                        </select>
+                        <span id="student-count-badge" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap">0 total</span>
+                    </div>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -62,6 +69,7 @@ async function loadStudentsPage() {
 
     await loadStudentsList();
     loadSectionsForFilter('student-section-filter');
+    initTableSearchFilter('student-search', 'students-table', 'student-count-badge');
 }
 
 async function loadStudentsList() {
@@ -71,6 +79,8 @@ async function loadStudentsList() {
         
         window.allStudents = students;
         renderStudentsTable(students);
+        const countBadge = document.getElementById('student-count-badge');
+        if (countBadge) countBadge.textContent = `${students.length} total`;
     } catch (error) {
         showToast(error.message || 'Failed to load students', 'error');
     }
@@ -288,6 +298,16 @@ async function loadTeachersPage() {
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="teacher-search" placeholder="Search teachers by name, ID, or department..." 
+                        class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <span id="teacher-count-badge" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap">0 total</span>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -312,12 +332,16 @@ async function loadTeachersPage() {
     `;
 
     await loadTeachersList();
+    initTableSearchFilter('teacher-search', 'teachers-table', 'teacher-count-badge');
 }
 
 async function loadTeachersList() {
     try {
         const response = await api.getTeacherProfiles();
         const teachers = listOf(response);
+        
+        const countBadge = document.getElementById('teacher-count-badge');
+        if (countBadge) countBadge.textContent = `${teachers.length} total`;
         
         const table = document.getElementById('teachers-table');
         
@@ -512,6 +536,16 @@ async function loadParentsPage() {
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="parent-search" placeholder="Search parents by name, email, or phone..." 
+                        class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <span id="parent-count-badge" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap">0 total</span>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -536,12 +570,16 @@ async function loadParentsPage() {
     `;
 
     await loadParentsList();
+    initTableSearchFilter('parent-search', 'parents-table', 'parent-count-badge');
 }
 
 async function loadParentsList() {
     try {
         const response = await api.getParentProfiles();
         const parents = listOf(response);
+        
+        const countBadge = document.getElementById('parent-count-badge');
+        if (countBadge) countBadge.textContent = `${parents.length} total`;
         
         const table = document.getElementById('parents-table');
         

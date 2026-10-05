@@ -637,6 +637,63 @@ async function handleLogout() {
 }
 
 // ============================================================
+// Interactive Live Table Search & Filtering System
+// ============================================================
+function initTableSearchFilter(inputId, tbodyId, countBadgeId = null) {
+    const input = document.getElementById(inputId);
+    const tbody = document.getElementById(tbodyId);
+    if (!input || !tbody) return;
+
+    const performFilter = () => {
+        const query = input.value.toLowerCase().trim();
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.table-no-results)'));
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.querySelector('td[colspan]')) return;
+            const text = row.textContent.toLowerCase();
+            const matches = !query || text.includes(query);
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        if (countBadgeId) {
+            const badge = document.getElementById(countBadgeId);
+            if (badge) {
+                const total = rows.filter(r => !r.querySelector('td[colspan]')).length;
+                badge.textContent = query ? `Showing ${visibleCount} of ${total}` : `${total} total`;
+            }
+        }
+
+        let noResultsRow = tbody.querySelector('.table-no-results');
+        const dataRows = rows.filter(r => !r.querySelector('td[colspan]'));
+        if (dataRows.length > 0 && visibleCount === 0 && query) {
+            if (!noResultsRow) {
+                const colCount = rows[0]?.children.length || 5;
+                noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'table-no-results';
+                noResultsRow.innerHTML = `
+                    <td colspan="${colCount}" class="px-6 py-8 text-center text-gray-500">
+                        <p class="text-sm font-medium">No results matching "${escapeHtml(query)}"</p>
+                        <button type="button" class="mt-2 text-xs text-indigo-600 hover:text-indigo-500 font-medium underline clear-search-btn">Clear search</button>
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
+                noResultsRow.querySelector('.clear-search-btn').addEventListener('click', () => {
+                    input.value = '';
+                    performFilter();
+                    input.focus();
+                });
+            }
+        } else if (noResultsRow) {
+            noResultsRow.remove();
+        }
+    };
+
+    input.addEventListener('input', performFilter);
+}
+
+// ============================================================
 // Global Command Palette & Keyboard Shortcuts System
 // ============================================================
 let isCommandPaletteOpen = false;
