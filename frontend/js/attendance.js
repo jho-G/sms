@@ -65,7 +65,7 @@ async function loadTeacherAssignmentsForAttendance() {
         if (!user) return;
         
         const response = await api.getSubjectAssignments({ teacher_id: user.id });
-        const assignments = response.data?.results || response.data || [];
+        const assignments = listOf(response);
         
         const select = document.getElementById('attendance-assignment');
         assignments.forEach(assignment => {
@@ -89,15 +89,15 @@ async function loadStudentsForAttendance() {
     try {
         // Get assignment details to find section
         const assignment = await api.getSubjectAssignment(assignmentId);
-        const sectionId = assignment.data?.section;
-        
+        const sectionId = itemOf(assignment)?.section;
+
         if (!sectionId) {
             showToast('No section found for this assignment', 'error');
             return;
         }
 
         const studentsResponse = await api.getStudentsBySection(sectionId);
-        const students = studentsResponse.data?.results || studentsResponse.data || [];
+        const students = listOf(studentsResponse);
         
         const table = document.getElementById('attendance-students-table');
         document.getElementById('attendance-students').classList.remove('hidden');
@@ -105,10 +105,10 @@ async function loadStudentsForAttendance() {
         table.innerHTML = students.map(student => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${student.user_name || 'Student'}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(student.user_full_name || 'Student')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${student.student_id}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(student.student_id)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex justify-center space-x-2">
@@ -211,13 +211,26 @@ async function loadMyAttendancePage() {
 }
 
 async function loadMyAttendanceList() {
+    const table = document.getElementById('my-attendance-table');
+
+    // Attendance rows are keyed by StudentProfile UUID, not by the User UUID
+    // held in localStorage. Querying with the latter always returned nothing.
+    const studentId = myProfileId();
+    if (!studentId) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="4" class="px-6 py-12 text-center">
+                    <p class="text-sm text-gray-500">Your student profile has not been set up yet. Ask a director to complete your enrollment.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
     try {
-        const user = api.getUser();
-        const response = await api.getAttendanceRecords({ student_id: user?.id });
-        const records = response.data?.results || response.data || [];
-        
-        const table = document.getElementById('my-attendance-table');
-        
+        const response = await api.getAttendanceRecords({ student_id: studentId });
+        const records = listOf(response);
+
         if (records.length === 0) {
             table.innerHTML = `
                 <tr>
@@ -235,13 +248,13 @@ async function loadMyAttendanceList() {
                     <div class="text-sm text-gray-900">${formatDate(record.date)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${record.subject_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(record.subject_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${getStatusBadge(record.status)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${record.remarks || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(record.remarks || '--')}</div>
                 </td>
             </tr>
         `).join('');
@@ -282,13 +295,23 @@ async function loadChildrenAttendancePage() {
 }
 
 async function loadChildrenAttendanceList() {
+    const container = document.getElementById('children-attendance-content');
+
+    // Guardian links are keyed by ParentProfile UUID, not User UUID.
+    const parentId = myProfileId();
+    if (!parentId) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <p class="text-gray-500">Your parent profile has not been set up yet. Ask a director to link your account.</p>
+            </div>
+        `;
+        return;
+    }
+
     try {
-        const user = api.getUser();
-        const childrenResponse = await api.getParentChildren(user?.id);
-        const children = childrenResponse.data?.results || childrenResponse.data || [];
-        
-        const container = document.getElementById('children-attendance-content');
-        
+        const childrenResponse = await api.getParentChildren(parentId);
+        const children = listOf(childrenResponse);
+
         if (children.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-12">
@@ -298,14 +321,16 @@ async function loadChildrenAttendanceList() {
             return;
         }
 
-        let html = '';
-        for (const child of children) {
-            const attendanceResponse = await api.getAttendanceRecords({ student_id: child.student });
-            const records = attendanceResponse.data?.results || attendanceResponse.data || [];
-            
-            html += `
+        const sections = await Promise.all(
+            children.map(async (child) => {
+                const attendanceResponse = await api
+                    .getAttendanceRecords({ student_id: child.student })
+                    .catch(() => null);
+                const records = listOf(attendanceResponse);
+
+                return `
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${child.student_name || 'Student'}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${escapeHtml(child.student_name || 'Student')}</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -317,14 +342,14 @@ async function loadChildrenAttendanceList() {
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                ${records.length === 0 
+                                ${records.length === 0
                                     ? '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">No attendance records</td></tr>'
                                     : records.slice(0, 10).map(record => `
                                         <tr>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm">${formatDate(record.date)}</td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm">${record.subject_name || 'N/A'}</td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm">${escapeHtml(record.subject_name || 'N/A')}</td>
                                             <td class="px-4 py-3 whitespace-nowrap">${getStatusBadge(record.status)}</td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${record.remarks || '--'}</td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${escapeHtml(record.remarks || '--')}</td>
                                         </tr>
                                     `).join('')
                                 }
@@ -333,9 +358,10 @@ async function loadChildrenAttendanceList() {
                     </div>
                 </div>
             `;
-        }
-        
-        container.innerHTML = html;
+            })
+        );
+
+        container.innerHTML = sections.join('');
     } catch (error) {
         showToast(error.message || 'Failed to load children attendance', 'error');
     }

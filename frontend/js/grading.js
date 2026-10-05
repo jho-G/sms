@@ -55,7 +55,7 @@ async function loadCategoriesPage() {
 async function loadCategoriesList() {
     try {
         const response = await api.getAssessmentCategories();
-        const categories = response.data?.results || response.data || [];
+        const categories = listOf(response);
         
         const table = document.getElementById('categories-table');
         
@@ -74,16 +74,16 @@ async function loadCategoriesList() {
         table.innerHTML = categories.map(category => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${category.name}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(category.name)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${category.subject_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(category.subject_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${category.section_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(category.section_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-semibold text-indigo-600">${category.weight}%</div>
+                    <div class="text-sm font-semibold text-indigo-600">${escapeHtml(category.weight)}%</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">${category.graded_count || 0} students</div>
@@ -220,7 +220,7 @@ async function loadEnterGradesPage() {
 async function loadTeacherCategoriesForGrading() {
     try {
         const response = await api.getAssessmentCategories();
-        const categories = response.data?.results || response.data || [];
+        const categories = listOf(response);
         
         const select = document.getElementById('grade-category');
         categories.forEach(category => {
@@ -243,15 +243,17 @@ async function loadStudentsForGrading() {
 
     try {
         const category = await api.getAssessmentCategory(categoryId);
-        const sectionId = category.data?.subject_assignment?.section;
-        
+        // The serializer exposes the section UUID directly, so no second
+        // round-trip through the subject assignment is needed.
+        const sectionId = itemOf(category)?.section;
+
         if (!sectionId) {
             showToast('No section found for this category', 'error');
             return;
         }
 
         const studentsResponse = await api.getStudentsBySection(sectionId);
-        const students = studentsResponse.data?.results || studentsResponse.data || [];
+        const students = listOf(studentsResponse);
         
         const table = document.getElementById('grade-students-table');
         document.getElementById('grade-students').classList.remove('hidden');
@@ -259,10 +261,10 @@ async function loadStudentsForGrading() {
         table.innerHTML = students.map(student => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${student.user_name || 'Student'}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(student.user_full_name || 'Student')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${student.student_id}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(student.student_id)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <input type="number" id="score-${student.id}" min="0" step="0.01" placeholder="0"
@@ -351,13 +353,23 @@ async function loadMyGradesPage() {
 }
 
 async function loadMyGradesList() {
+    const container = document.getElementById('my-grades-content');
+
+    // Grades are keyed by StudentProfile UUID, not by the User UUID.
+    const studentId = myProfileId();
+    if (!studentId) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <p class="text-gray-500">Your student profile has not been set up yet. Ask a director to complete your enrollment.</p>
+            </div>
+        `;
+        return;
+    }
+
     try {
-        const user = api.getUser();
-        const response = await api.getGrades({ student_id: user?.id });
-        const grades = response.data?.results || response.data || [];
-        
-        const container = document.getElementById('my-grades-content');
-        
+        const response = await api.getGrades({ student_id: studentId });
+        const grades = listOf(response);
+
         if (grades.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-12">
@@ -379,7 +391,7 @@ async function loadMyGradesList() {
         for (const [subject, subjectGrades] of Object.entries(bySubject)) {
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${subject}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${escapeHtml(subject)}</h3>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -393,11 +405,11 @@ async function loadMyGradesList() {
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${subjectGrades.map(grade => `
                                 <tr>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">${grade.category_name}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${grade.score}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${grade.max_score}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">${escapeHtml(grade.category_name)}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${escapeHtml(grade.score)}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${escapeHtml(grade.max_score)}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold ${grade.percentage >= 70 ? 'text-green-600' : grade.percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">${grade.percentage?.toFixed(1)}%</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${grade.remarks || '--'}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${escapeHtml(grade.remarks || '--')}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -405,7 +417,7 @@ async function loadMyGradesList() {
                 </div>
             `;
         }
-        
+
         container.innerHTML = html;
     } catch (error) {
         showToast(error.message || 'Failed to load grades', 'error');
@@ -434,13 +446,22 @@ async function loadChildrenGradesPage() {
 }
 
 async function loadChildrenGradesList() {
+    const container = document.getElementById('children-grades-content');
+
+    const parentId = myProfileId();
+    if (!parentId) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <p class="text-gray-500">Your parent profile has not been set up yet. Ask a director to link your account.</p>
+            </div>
+        `;
+        return;
+    }
+
     try {
-        const user = api.getUser();
-        const childrenResponse = await api.getParentChildren(user?.id);
-        const children = childrenResponse.data?.results || childrenResponse.data || [];
-        
-        const container = document.getElementById('children-grades-content');
-        
+        const childrenResponse = await api.getParentChildren(parentId);
+        const children = listOf(childrenResponse);
+
         if (children.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-12">
@@ -450,15 +471,17 @@ async function loadChildrenGradesList() {
             return;
         }
 
-        let html = '';
-        for (const child of children) {
-            const gradesResponse = await api.getGrades({ student_id: child.student });
-            const grades = gradesResponse.data?.results || gradesResponse.data || [];
-            
-            html += `
+        const sections = await Promise.all(
+            children.map(async (child) => {
+                const gradesResponse = await api
+                    .getGrades({ student_id: child.student })
+                    .catch(() => null);
+                const grades = listOf(gradesResponse);
+
+                return `
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${child.student_name || 'Student'}</h3>
-                    ${grades.length === 0 
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">${escapeHtml(child.student_name || 'Student')}</h3>
+                    ${grades.length === 0
                         ? '<p class="text-sm text-gray-500">No grades found</p>'
                         : `<table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -473,11 +496,11 @@ async function loadChildrenGradesList() {
                             <tbody class="bg-white divide-y divide-gray-200">
                                 ${grades.map(grade => `
                                     <tr>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm">${grade.subject_name || 'N/A'}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">${grade.category_name}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${grade.score}/${grade.max_score}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm">${escapeHtml(grade.subject_name || 'N/A')}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">${escapeHtml(grade.category_name)}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-center">${escapeHtml(grade.score)}/${escapeHtml(grade.max_score)}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold ${grade.percentage >= 70 ? 'text-green-600' : grade.percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">${grade.percentage?.toFixed(1)}%</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${grade.remarks || '--'}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${escapeHtml(grade.remarks || '--')}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -485,9 +508,10 @@ async function loadChildrenGradesList() {
                     }
                 </div>
             `;
-        }
-        
-        container.innerHTML = html;
+            })
+        );
+
+        container.innerHTML = sections.join('');
     } catch (error) {
         showToast(error.message || 'Failed to load children grades', 'error');
     }
@@ -541,19 +565,112 @@ async function loadReportCardsPage() {
 async function loadStudentsForReportSelect(selectId) {
     try {
         const response = await api.getStudentProfiles();
-        const students = response.data?.results || response.data || [];
+        const students = listOf(response);
         const select = document.getElementById(selectId);
         
         students.forEach(student => {
             const option = document.createElement('option');
             option.value = student.id;
-            option.textContent = `${student.user_name || 'Student'} (${student.student_id})`;
+            option.textContent = `${student.user_full_name || 'Student'} (${student.student_id})`;
             select.appendChild(option);
         });
     } catch (error) {
         console.error('Failed to load students:', error);
     }
 }
+
+/**
+ * Render a report card payload.
+ *
+ * Shared by the director's "Report Cards" page and a student's own report
+ * card, which previously carried two near-identical copies of this markup.
+ */
+function renderReportCardHtml(report) {
+    const gpaColour = report.overall_gpa >= 3.0
+        ? 'text-green-600'
+        : report.overall_gpa >= 2.0 ? 'text-yellow-600' : 'text-red-600';
+
+    const subjects = (report.subjects || []).map(subject => {
+        const pctColour = subject.total_weighted_percentage >= 70
+            ? 'text-green-600'
+            : subject.total_weighted_percentage >= 50 ? 'text-yellow-600' : 'text-red-600';
+
+        const rows = (subject.grades || []).map(grade => `
+            <tr>
+                <td class="px-4 py-2">${escapeHtml(grade.category_name)}</td>
+                <td class="px-4 py-2 text-center">${escapeHtml(grade.category_weight)}%</td>
+                <td class="px-4 py-2 text-center">${grade.score !== null ? `${escapeHtml(grade.score)}/${escapeHtml(grade.max_score)}` : '--'}</td>
+                <td class="px-4 py-2 text-center">${grade.percentage !== null ? `${grade.percentage.toFixed(1)}%` : '--'}</td>
+                <td class="px-4 py-2 text-center font-medium">${grade.weighted_score?.toFixed(2) ?? '--'}</td>
+            </tr>
+        `).join('');
+
+        return `
+            <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h5 class="font-semibold text-gray-900">${escapeHtml(subject.subject_name)} (${escapeHtml(subject.subject_code)})</h5>
+                    <span class="text-lg font-bold ${pctColour}">${subject.total_weighted_percentage?.toFixed(1)}%</span>
+                </div>
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500">Category</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weight</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Score</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Percentage</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weighted</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold text-gray-900">Report Card</h3>
+                <p class="text-gray-600">${escapeHtml(report.academic_year)}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div>
+                    <p class="text-sm text-gray-500">Student Name</p>
+                    <p class="text-lg font-semibold text-gray-900">${escapeHtml(report.student_name)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Student ID</p>
+                    <p class="text-lg font-semibold text-gray-900">${escapeHtml(report.student_id_code)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Section</p>
+                    <p class="text-lg font-semibold text-gray-900">${escapeHtml(report.section || 'N/A')}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Overall GPA</p>
+                    <p class="text-2xl font-bold ${gpaColour}">${report.overall_gpa?.toFixed(2)} (${escapeHtml(report.letter_grade)})</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Subject Grades</h4>
+            </div>
+
+            ${subjects}
+
+            <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                <p class="text-2xl font-bold text-gray-900">Overall: ${report.overall_weighted_percentage?.toFixed(1)}% - GPA: ${report.overall_gpa?.toFixed(2)} (${escapeHtml(report.letter_grade)})</p>
+            </div>
+        </div>
+    `;
+}
+
+const EMPTY_REPORT_CARD_HTML = `
+    <div class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+        <p class="text-gray-500">No report card data found</p>
+    </div>
+`;
 
 async function loadReportCard() {
     const studentId = document.getElementById('report-student').value;
@@ -564,88 +681,15 @@ async function loadReportCard() {
         return;
     }
 
+    const container = document.getElementById('report-card-content');
+
     try {
         const response = await api.getReportCard(studentId, yearId);
-        const report = response.data;
-        
-        const container = document.getElementById('report-card-content');
-        
-        if (!report) {
-            container.innerHTML = `
-                <div class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-gray-500">No report card data found</p>
-                </div>
-            `;
-            return;
-        }
+        const report = itemOf(response);
 
-        container.innerHTML = `
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                <div class="text-center mb-8">
-                    <h3 class="text-2xl font-bold text-gray-900">Report Card</h3>
-                    <p class="text-gray-600">${report.academic_year}</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <p class="text-sm text-gray-500">Student Name</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.student_name}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Student ID</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.student_id_code}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Section</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.section || 'N/A'}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Overall GPA</p>
-                        <p class="text-2xl font-bold ${report.overall_gpa >= 3.0 ? 'text-green-600' : report.overall_gpa >= 2.0 ? 'text-yellow-600' : 'text-red-600'}">${report.overall_gpa?.toFixed(2)} (${report.letter_grade})</p>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Subject Grades</h4>
-                </div>
-
-                ${report.subjects?.map(subject => `
-                    <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h5 class="font-semibold text-gray-900">${subject.subject_name} (${subject.subject_code})</h5>
-                            <span class="text-lg font-bold ${subject.total_weighted_percentage >= 70 ? 'text-green-600' : subject.total_weighted_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">${subject.total_weighted_percentage?.toFixed(1)}%</span>
-                        </div>
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500">Category</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weight</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Score</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Percentage</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weighted</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                ${subject.grades?.map(grade => `
-                                    <tr>
-                                        <td class="px-4 py-2">${grade.category_name}</td>
-                                        <td class="px-4 py-2 text-center">${grade.category_weight}%</td>
-                                        <td class="px-4 py-2 text-center">${grade.score !== null ? `${grade.score}/${grade.max_score}` : '--'}</td>
-                                        <td class="px-4 py-2 text-center">${grade.percentage !== null ? `${grade.percentage?.toFixed(1)}%` : '--'}</td>
-                                        <td class="px-4 py-2 text-center font-medium">${grade.weighted_score?.toFixed(2)}</td>
-                                    </tr>
-                                `).join('') || ''}
-                            </tbody>
-                        </table>
-                    </div>
-                `).join('') || ''}
-
-                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-                    <p class="text-2xl font-bold text-gray-900">Overall: ${report.overall_weighted_percentage?.toFixed(1)}% - GPA: ${report.overall_gpa?.toFixed(2)} (${report.letter_grade})</p>
-                </div>
-            </div>
-        `;
+        container.innerHTML = report ? renderReportCardHtml(report) : EMPTY_REPORT_CARD_HTML;
     } catch (error) {
+        container.innerHTML = EMPTY_REPORT_CARD_HTML;
         showToast(error.message || 'Failed to load report card', 'error');
     }
 }
@@ -691,85 +735,15 @@ async function loadMyReportCard() {
         return;
     }
 
+    const container = document.getElementById('my-report-card-content');
+
     try {
         const response = await api.getMyReportCard(yearId);
-        const report = response.data;
-        
-        const container = document.getElementById('my-report-card-content');
-        
-        if (!report) {
-            container.innerHTML = `
-                <div class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-gray-500">No report card data found</p>
-                </div>
-            `;
-            return;
-        }
+        const report = itemOf(response);
 
-        // Reuse report card display
-        container.innerHTML = `
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-                <div class="text-center mb-8">
-                    <h3 class="text-2xl font-bold text-gray-900">Report Card</h3>
-                    <p class="text-gray-600">${report.academic_year}</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <p class="text-sm text-gray-500">Student Name</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.student_name}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Student ID</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.student_id_code}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Section</p>
-                        <p class="text-lg font-semibold text-gray-900">${report.section || 'N/A'}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Overall GPA</p>
-                        <p class="text-2xl font-bold ${report.overall_gpa >= 3.0 ? 'text-green-600' : report.overall_gpa >= 2.0 ? 'text-yellow-600' : 'text-red-600'}">${report.overall_gpa?.toFixed(2)} (${report.letter_grade})</p>
-                    </div>
-                </div>
-
-                ${report.subjects?.map(subject => `
-                    <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h5 class="font-semibold text-gray-900">${subject.subject_name} (${subject.subject_code})</h5>
-                            <span class="text-lg font-bold ${subject.total_weighted_percentage >= 70 ? 'text-green-600' : subject.total_weighted_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">${subject.total_weighted_percentage?.toFixed(1)}%</span>
-                        </div>
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500">Category</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weight</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Score</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Percentage</th>
-                                    <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Weighted</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                ${subject.grades?.map(grade => `
-                                    <tr>
-                                        <td class="px-4 py-2">${grade.category_name}</td>
-                                        <td class="px-4 py-2 text-center">${grade.category_weight}%</td>
-                                        <td class="px-4 py-2 text-center">${grade.score !== null ? `${grade.score}/${grade.max_score}` : '--'}</td>
-                                        <td class="px-4 py-2 text-center">${grade.percentage !== null ? `${grade.percentage?.toFixed(1)}%` : '--'}</td>
-                                        <td class="px-4 py-2 text-center font-medium">${grade.weighted_score?.toFixed(2)}</td>
-                                    </tr>
-                                `).join('') || ''}
-                            </tbody>
-                        </table>
-                    </div>
-                `).join('') || ''}
-
-                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-                    <p class="text-2xl font-bold text-gray-900">Overall: ${report.overall_weighted_percentage?.toFixed(1)}% - GPA: ${report.overall_gpa?.toFixed(2)} (${report.letter_grade})</p>
-                </div>
-            </div>
-        `;
+        container.innerHTML = report ? renderReportCardHtml(report) : EMPTY_REPORT_CARD_HTML;
     } catch (error) {
+        container.innerHTML = EMPTY_REPORT_CARD_HTML;
         showToast(error.message || 'Failed to load report card', 'error');
     }
 }
@@ -818,7 +792,7 @@ async function loadMyAssignmentsList() {
     try {
         const user = api.getUser();
         const response = await api.getSubjectAssignments({ teacher_id: user?.id });
-        const assignments = response.data?.results || response.data || [];
+        const assignments = listOf(response);
         
         const table = document.getElementById('my-assignments-table');
         
@@ -836,14 +810,14 @@ async function loadMyAssignmentsList() {
         table.innerHTML = assignments.map(assignment => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${assignment.subject_name || 'N/A'}</div>
-                    <div class="text-xs text-gray-500">${assignment.subject_code || ''}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(assignment.subject_name || 'N/A')}</div>
+                    <div class="text-xs text-gray-500">${escapeHtml(assignment.subject_code || '')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${assignment.section_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(assignment.section_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${assignment.academic_year_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(assignment.academic_year_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${assignment.is_active 
@@ -884,13 +858,22 @@ async function loadChildrenPage() {
 }
 
 async function loadChildrenList() {
+    const container = document.getElementById('children-content');
+
+    const parentId = myProfileId();
+    if (!parentId) {
+        container.innerHTML = `
+            <div class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+                <p class="text-gray-500">Your parent profile has not been set up yet. Ask a director to link your account.</p>
+            </div>
+        `;
+        return;
+    }
+
     try {
-        const user = api.getUser();
-        const response = await api.getParentChildren(user?.id);
-        const children = response.data?.results || response.data || [];
-        
-        const container = document.getElementById('children-content');
-        
+        const response = await api.getParentChildren(parentId);
+        const children = listOf(response);
+
         if (children.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
@@ -901,22 +884,21 @@ async function loadChildrenList() {
         }
 
         let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
-        
+
         for (const child of children) {
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span class="text-xl font-bold text-blue-600">${(child.student_name || 'S').charAt(0)}</span>
+                            <span class="text-xl font-bold text-blue-600">${escapeHtml((child.student_name || 'S').charAt(0))}</span>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">${child.student_name || 'Student'}</h3>
-                            <p class="text-sm text-gray-500">${child.relationship || 'Child'}</p>
+                            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(child.student_name || 'Student')}</h3>
+                            <p class="text-sm text-gray-500">${escapeHtml(child.relationship || 'Child')}</p>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <p class="text-sm"><span class="font-medium text-gray-700">Student ID:</span> ${child.student_id || 'N/A'}</p>
-                        <p class="text-sm"><span class="font-medium text-gray-700">Section:</span> ${child.section_name || 'N/A'}</p>
+                        <p class="text-sm"><span class="font-medium text-gray-700">Student ID:</span> ${escapeHtml(child.student_id_code || 'N/A')}</p>
                         <p class="text-sm"><span class="font-medium text-gray-700">Primary Guardian:</span> ${child.is_primary ? 'Yes' : 'No'}</p>
                     </div>
                     <div class="mt-4 pt-4 border-t border-gray-200">
@@ -926,7 +908,7 @@ async function loadChildrenList() {
                 </div>
             `;
         }
-        
+
         html += '</div>';
         container.innerHTML = html;
     } catch (error) {
@@ -941,7 +923,7 @@ async function loadChildrenList() {
 async function loadAssignmentsForSelect(selectId) {
     try {
         const response = await api.getSubjectAssignments();
-        const assignments = response.data?.results || response.data || [];
+        const assignments = listOf(response);
         const select = document.getElementById(selectId);
         
         assignments.forEach(assignment => {

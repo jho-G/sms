@@ -8,10 +8,16 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="h-full">
-    <div class="min-h-full" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+    <div class="min-h-full">
         <!-- Sidebar -->
-        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out"
-             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        <!--
+            Hidden off-canvas on small screens and pinned open from `lg` up.
+            This used to rely on Alpine `x-data` / `:class` bindings, but
+            Alpine was never loaded on the page, so the bindings were inert
+            and the sidebar covered the content on mobile. toggleMobileMenu()
+            in dashboard.js drives the translate class directly instead.
+        -->
+        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out -translate-x-full lg:translate-x-0"
              id="sidebar">
             <!-- Logo -->
             <div class="flex items-center justify-center h-16 border-b border-gray-200">

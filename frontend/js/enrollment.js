@@ -67,7 +67,7 @@ async function loadStudentsPage() {
 async function loadStudentsList() {
     try {
         const response = await api.getStudentProfiles();
-        const students = response.data?.results || response.data || [];
+        const students = listOf(response);
         
         window.allStudents = students;
         renderStudentsTable(students);
@@ -94,23 +94,23 @@ function renderStudentsTable(students) {
     table.innerHTML = students.map(student => `
         <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-mono text-gray-900">${student.student_id}</div>
+                <div class="text-sm font-mono text-gray-900">${escapeHtml(student.student_id)}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span class="text-sm font-medium text-blue-600">${(student.user_name || 'U').charAt(0)}</span>
+                        <span class="text-sm font-medium text-blue-600">${escapeHtml((student.user_full_name || 'U').charAt(0))}</span>
                     </div>
                     <div class="ml-3">
-                        <div class="text-sm font-medium text-gray-900">${student.user_name || 'N/A'}</div>
+                        <div class="text-sm font-medium text-gray-900">${escapeHtml(student.user_full_name || 'N/A')}</div>
                     </div>
                 </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">${student.user_email || '--'}</div>
+                <div class="text-sm text-gray-900">${escapeHtml(student.user_email || '--')}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">${student.section_name || 'Unassigned'}</div>
+                <div class="text-sm text-gray-900">${escapeHtml(student.section_name || 'Unassigned')}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900">${formatDate(student.enrollment_date)}</div>
@@ -127,7 +127,7 @@ function filterStudents(query) {
     if (!window.allStudents) return;
     
     const filtered = window.allStudents.filter(student => {
-        const searchStr = `${student.student_id} ${student.user_name} ${student.user_email}`.toLowerCase();
+        const searchStr = `${student.student_id} ${student.user_full_name} ${student.user_email}`.toLowerCase();
         return searchStr.includes(query.toLowerCase());
     });
     
@@ -194,8 +194,9 @@ function showCreateStudentModal() {
     document.getElementById('create-student-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-            // First register the user
-            const registerResponse = await api.register({
+            // Create the user account first. `createUser` (not `register`)
+            // so the director stays signed in as themselves.
+            const registerResponse = await api.createUser({
                 email: document.getElementById('student-email').value,
                 username: document.getElementById('student-email').value.split('@')[0],
                 first_name: document.getElementById('student-firstname').value,
@@ -204,7 +205,7 @@ function showCreateStudentModal() {
                 password: document.getElementById('student-password').value,
                 password_confirm: document.getElementById('student-password').value
             });
-            
+
             if (registerResponse.success) {
                 // Then create the profile
                 await api.createStudentProfile({
@@ -214,7 +215,7 @@ function showCreateStudentModal() {
                     date_of_birth: document.getElementById('student-dob').value,
                     guardian_contact: document.getElementById('student-guardian-contact').value
                 });
-                
+
                 closeModal();
                 showToast('Student created successfully');
                 loadStudentsList();
@@ -240,16 +241,18 @@ async function deleteStudent(id) {
 async function viewStudent(id) {
     try {
         const response = await api.getStudentProfile(id);
-        const student = response.data;
+        const student = itemOf(response);
         
         const content = `
             <div class="space-y-3">
-                <div><span class="font-medium text-gray-700">Name:</span> ${student.user_name || 'N/A'}</div>
-                <div><span class="font-medium text-gray-700">Student ID:</span> ${student.student_id || '--'}</div>
-                <div><span class="font-medium text-gray-700">Section:</span> ${student.section_name || '--'}</div>
+                <div><span class="font-medium text-gray-700">Name:</span> ${escapeHtml(student.user_full_name || 'N/A')}</div>
+                <div><span class="font-medium text-gray-700">Email:</span> ${escapeHtml(student.user_email || '--')}</div>
+                <div><span class="font-medium text-gray-700">Student ID:</span> ${escapeHtml(student.student_id || '--')}</div>
+                <div><span class="font-medium text-gray-700">Section:</span> ${escapeHtml(student.section_name || '--')}</div>
                 <div><span class="font-medium text-gray-700">Date of Birth:</span> ${formatDate(student.date_of_birth)}</div>
-                <div><span class="font-medium text-gray-700">Phone:</span> ${student.phone_number || '--'}</div>
-                <div><span class="font-medium text-gray-700">Address:</span> ${student.address || '--'}</div>
+                <div><span class="font-medium text-gray-700">Enrolled:</span> ${formatDate(student.enrollment_date)}</div>
+                <div><span class="font-medium text-gray-700">Guardian Contact:</span> ${escapeHtml(student.guardian_contact || '--')}</div>
+                <div><span class="font-medium text-gray-700">Medical Notes:</span> ${escapeHtml(student.medical_notes || '--')}</div>
                 <div class="flex justify-end pt-4">
                     <button onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Close</button>
                 </div>
@@ -314,7 +317,7 @@ async function loadTeachersPage() {
 async function loadTeachersList() {
     try {
         const response = await api.getTeacherProfiles();
-        const teachers = response.data?.results || response.data || [];
+        const teachers = listOf(response);
         
         const table = document.getElementById('teachers-table');
         
@@ -333,23 +336,23 @@ async function loadTeachersList() {
         table.innerHTML = teachers.map(teacher => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-mono text-gray-900">${teacher.employee_id}</div>
+                    <div class="text-sm font-mono text-gray-900">${escapeHtml(teacher.employee_id)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <span class="text-sm font-medium text-green-600">${(teacher.user_name || 'T').charAt(0)}</span>
+                            <span class="text-sm font-medium text-green-600">${escapeHtml((teacher.user_full_name || 'T').charAt(0))}</span>
                         </div>
                         <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-900">${teacher.user_name || 'N/A'}</div>
+                            <div class="text-sm font-medium text-gray-900">${escapeHtml(teacher.user_full_name || 'N/A')}</div>
                         </div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${teacher.department || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(teacher.department || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${teacher.specialization || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(teacher.specialization || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="viewTeacher('${teacher.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
@@ -419,7 +422,7 @@ function showCreateTeacherModal() {
     document.getElementById('create-teacher-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-            const registerResponse = await api.register({
+            const registerResponse = await api.createUser({
                 email: document.getElementById('teacher-email').value,
                 username: document.getElementById('teacher-email').value.split('@')[0],
                 first_name: document.getElementById('teacher-firstname').value,
@@ -463,15 +466,17 @@ async function deleteTeacher(id) {
 async function viewTeacher(id) {
     try {
         const response = await api.getTeacherProfile(id);
-        const teacher = response.data;
+        const teacher = itemOf(response);
         
         const content = `
             <div class="space-y-3">
-                <div><span class="font-medium text-gray-700">Name:</span> ${teacher.user_name || teacher.employee_id}</div>
-                <div><span class="font-medium text-gray-700">Employee ID:</span> ${teacher.employee_id || '--'}</div>
-                <div><span class="font-medium text-gray-700">Department:</span> ${teacher.department || '--'}</div>
-                <div><span class="font-medium text-gray-700">Qualification:</span> ${teacher.qualification || '--'}</div>
-                <div><span class="font-medium text-gray-700">Phone:</span> ${teacher.phone_number || '--'}</div>
+                <div><span class="font-medium text-gray-700">Name:</span> ${escapeHtml(teacher.user_full_name || 'N/A')}</div>
+                <div><span class="font-medium text-gray-700">Email:</span> ${escapeHtml(teacher.user_email || '--')}</div>
+                <div><span class="font-medium text-gray-700">Employee ID:</span> ${escapeHtml(teacher.employee_id || '--')}</div>
+                <div><span class="font-medium text-gray-700">Department:</span> ${escapeHtml(teacher.department || '--')}</div>
+                <div><span class="font-medium text-gray-700">Specialization:</span> ${escapeHtml(teacher.specialization || '--')}</div>
+                <div><span class="font-medium text-gray-700">Qualification:</span> ${escapeHtml(teacher.qualification || '--')}</div>
+                <div><span class="font-medium text-gray-700">Hired:</span> ${formatDate(teacher.hire_date)}</div>
                 <div class="flex justify-end pt-4">
                     <button onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Close</button>
                 </div>
@@ -536,7 +541,7 @@ async function loadParentsPage() {
 async function loadParentsList() {
     try {
         const response = await api.getParentProfiles();
-        const parents = response.data?.results || response.data || [];
+        const parents = listOf(response);
         
         const table = document.getElementById('parents-table');
         
@@ -557,21 +562,21 @@ async function loadParentsList() {
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span class="text-sm font-medium text-purple-600">${(parent.user_name || 'P').charAt(0)}</span>
+                            <span class="text-sm font-medium text-purple-600">${escapeHtml((parent.user_full_name || 'P').charAt(0))}</span>
                         </div>
                         <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-900">${parent.user_name || 'N/A'}</div>
+                            <div class="text-sm font-medium text-gray-900">${escapeHtml(parent.user_full_name || 'N/A')}</div>
                         </div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${parent.user_email || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(parent.user_email || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${parent.occupation || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(parent.occupation || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${parent.secondary_phone || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(parent.secondary_phone || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="viewParent('${parent.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
@@ -636,7 +641,7 @@ function showCreateParentModal() {
     document.getElementById('create-parent-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-            const registerResponse = await api.register({
+            const registerResponse = await api.createUser({
                 email: document.getElementById('parent-email').value,
                 username: document.getElementById('parent-email').value.split('@')[0],
                 first_name: document.getElementById('parent-firstname').value,
@@ -674,24 +679,26 @@ async function deleteParent(id) {
     } catch (error) {
         showToast(error.message || 'Failed to delete parent', 'error');
     }
-}async function viewParent(id) {
+}
+
+async function viewParent(id) {
     try {
         const response = await api.getParentProfile(id);
-        const parent = response.data;
-        
+        const parent = itemOf(response);
+
         const content = `
             <div class="space-y-3">
-                <div><span class="font-medium text-gray-700">Name:</span> ${parent.user_name || 'N/A'}</div>
-                <div><span class="font-medium text-gray-700">Relationship:</span> ${parent.relationship || '--'}</div>
-                <div><span class="font-medium text-gray-700">Phone:</span> ${parent.phone_number || '--'}</div>
-                <div><span class="font-medium text-gray-700">Email:</span> ${parent.email || '--'}</div>
-                <div><span class="font-medium text-gray-700">Address:</span> ${parent.address || '--'}</div>
+                <div><span class="font-medium text-gray-700">Name:</span> ${escapeHtml(parent.user_full_name || 'N/A')}</div>
+                <div><span class="font-medium text-gray-700">Email:</span> ${escapeHtml(parent.user_email || '--')}</div>
+                <div><span class="font-medium text-gray-700">Occupation:</span> ${escapeHtml(parent.occupation || '--')}</div>
+                <div><span class="font-medium text-gray-700">Secondary Phone:</span> ${escapeHtml(parent.secondary_phone || '--')}</div>
+                <div><span class="font-medium text-gray-700">Address:</span> ${escapeHtml(parent.address || '--')}</div>
                 <div class="flex justify-end pt-4">
                     <button onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Close</button>
                 </div>
             </div>
         `;
-        
+
         openModal('Parent Details', content);
     } catch (error) {
         showToast(error.message || 'Failed to load parent', 'error');
@@ -751,7 +758,7 @@ async function loadGuardiansPage() {
 async function loadGuardiansList() {
     try {
         const response = await api.getGuardianLinks();
-        const guardians = response.data?.results || response.data || [];
+        const guardians = listOf(response);
         
         const table = document.getElementById('guardians-table');
         
@@ -770,13 +777,13 @@ async function loadGuardiansList() {
         table.innerHTML = guardians.map(guardian => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${guardian.student_name || 'N/A'}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(guardian.student_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${guardian.parent_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(guardian.parent_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${guardian.relationship || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(guardian.relationship || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${guardian.is_primary 
@@ -874,13 +881,13 @@ async function deleteGuardian(id) {
 async function loadStudentsForGuardianSelect(selectId) {
     try {
         const response = await api.getStudentProfiles();
-        const students = response.data?.results || response.data || [];
+        const students = listOf(response);
         const select = document.getElementById(selectId);
         
         students.forEach(student => {
             const option = document.createElement('option');
             option.value = student.id;
-            option.textContent = `${student.user_name || 'Student'} (${student.student_id})`;
+            option.textContent = `${student.user_full_name || 'Student'} (${student.student_id})`;
             select.appendChild(option);
         });
     } catch (error) {
@@ -891,13 +898,13 @@ async function loadStudentsForGuardianSelect(selectId) {
 async function loadParentsForGuardianSelect(selectId) {
     try {
         const response = await api.getParentProfiles();
-        const parents = response.data?.results || response.data || [];
+        const parents = listOf(response);
         const select = document.getElementById(selectId);
         
         parents.forEach(parent => {
             const option = document.createElement('option');
             option.value = parent.id;
-            option.textContent = parent.user_name || 'Parent';
+            option.textContent = parent.user_full_name || 'Parent';
             select.appendChild(option);
         });
     } catch (error) {
@@ -908,7 +915,7 @@ async function loadParentsForGuardianSelect(selectId) {
 async function loadSectionsForFilter(selectId) {
     try {
         const response = await api.getClassSections();
-        const sections = response.data?.results || response.data || [];
+        const sections = listOf(response);
         const select = document.getElementById(selectId);
         
         sections.forEach(section => {

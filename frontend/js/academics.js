@@ -57,7 +57,7 @@ async function loadAcademicYearsPage() {
 async function loadAcademicYearsList() {
     try {
         const response = await api.getAcademicYears();
-        const years = response.data?.results || response.data || [];
+        const years = listOf(response);
         
         const table = document.getElementById('academic-years-table');
         
@@ -79,7 +79,7 @@ async function loadAcademicYearsList() {
         table.innerHTML = years.map(year => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${year.name}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(year.name)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">${formatDate(year.start_date)}</div>
@@ -170,24 +170,24 @@ async function deleteAcademicYear(id) {
 async function showEditAcademicYearModal(id) {
     try {
         const response = await api.getAcademicYear(id);
-        const year = response.data;
+        const year = itemOf(response);
         
         const content = `
             <form id="edit-year-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" id="edit-year-name" value="${year.name}" required
+                    <input type="text" id="edit-year-name" value="${escapeHtml(year.name)}" required
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Start Date</label>
-                        <input type="date" id="edit-year-start" value="${year.start_date}" required
+                        <input type="date" id="edit-year-start" value="${escapeHtml(year.start_date)}" required
                             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">End Date</label>
-                        <input type="date" id="edit-year-end" value="${year.end_date}" required
+                        <input type="date" id="edit-year-end" value="${escapeHtml(year.end_date)}" required
                             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                 </div>
@@ -228,24 +228,24 @@ async function showEditAcademicYearModal(id) {
 async function showEditGradeLevelModal(id) {
     try {
         const response = await api.getGradeLevel(id);
-        const grade = response.data;
+        const grade = itemOf(response);
         
         const content = `
             <form id="edit-grade-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" id="edit-grade-name" value="${grade.name}" required
+                    <input type="text" id="edit-grade-name" value="${escapeHtml(grade.name)}" required
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Level (9-12)</label>
-                    <input type="number" id="edit-grade-level" value="${grade.level}" required min="9" max="12"
+                    <input type="number" id="edit-grade-level" value="${escapeHtml(grade.level)}" required min="9" max="12"
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Description</label>
                     <textarea id="edit-grade-description" rows="2"
-                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">${grade.description || ''}</textarea>
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">${escapeHtml(grade.description || '')}</textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
@@ -279,24 +279,24 @@ async function showEditGradeLevelModal(id) {
 async function showEditSectionModal(id) {
     try {
         const response = await api.getClassSection(id);
-        const section = response.data;
+        const section = itemOf(response);
         
         const content = `
             <form id="edit-section-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Section Name</label>
-                    <input type="text" id="edit-section-name" value="${section.name}" required
+                    <input type="text" id="edit-section-name" value="${escapeHtml(section.name)}" required
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Capacity</label>
-                        <input type="number" id="edit-section-capacity" value="${section.capacity}" min="1"
+                        <input type="number" id="edit-section-capacity" value="${escapeHtml(section.capacity)}" min="1"
                             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Room Number</label>
-                        <input type="text" id="edit-section-room" value="${section.room_number || ''}"
+                        <input type="text" id="edit-section-room" value="${escapeHtml(section.room_number || '')}"
                             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                 </div>
@@ -388,7 +388,7 @@ async function loadGradeLevelsPage() {
 async function loadGradeLevelsList() {
     try {
         const response = await api.getGradeLevels();
-        const grades = response.data?.results || response.data || [];
+        const grades = listOf(response);
         
         const grid = document.getElementById('grade-levels-grid');
         
@@ -424,9 +424,9 @@ async function loadGradeLevelsList() {
                         </button>
                     </div>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">${grade.name}</h3>
-                ${grade.description ? `<p class="text-sm text-gray-500 mt-1">${grade.description}</p>` : ''}
-                <p class="text-xs text-gray-400 mt-3">Academic Year: ${grade.academic_year_name || 'N/A'}</p>
+                <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(grade.name)}</h3>
+                ${grade.description ? `<p class="text-sm text-gray-500 mt-1">${escapeHtml(grade.description)}</p>` : ''}
+                <p class="text-xs text-gray-400 mt-3">Academic Year: ${escapeHtml(grade.academic_year_name || 'N/A')}</p>
             </div>
         `).join('');
     } catch (error) {
@@ -552,7 +552,7 @@ async function loadSectionsPage() {
 async function loadSectionsList() {
     try {
         const response = await api.getClassSections();
-        const sections = response.data?.results || response.data || [];
+        const sections = listOf(response);
         
         const table = document.getElementById('sections-table');
         
@@ -571,16 +571,16 @@ async function loadSectionsList() {
         table.innerHTML = sections.map(section => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">Section ${section.name}</div>
+                    <div class="text-sm font-medium text-gray-900">Section ${escapeHtml(section.name)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${section.grade_level_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(section.grade_level_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${section.capacity}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(section.capacity)}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${section.room_number || '--'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(section.room_number || '--')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${section.is_active 
@@ -689,7 +689,7 @@ async function loadSubjectsPage() {
 async function loadSubjectsList() {
     try {
         const response = await api.getSubjects();
-        const subjects = response.data?.results || response.data || [];
+        const subjects = listOf(response);
         
         const grid = document.getElementById('subjects-grid');
         
@@ -707,7 +707,7 @@ async function loadSubjectsList() {
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <span class="text-lg font-bold text-green-600">${subject.code?.substring(0, 3) || 'SUB'}</span>
+                        <span class="text-lg font-bold text-green-600">${escapeHtml(subject.code?.substring(0, 3) || 'SUB')}</span>
                     </div>
                     <button onclick="deleteSubject('${subject.id}')" class="text-gray-400 hover:text-red-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -715,9 +715,9 @@ async function loadSubjectsList() {
                         </svg>
                     </button>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">${subject.name}</h3>
-                <p class="text-sm text-gray-500 mt-1">${subject.code}</p>
-                ${subject.description ? `<p class="text-xs text-gray-400 mt-2">${subject.description}</p>` : ''}
+                <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(subject.name)}</h3>
+                <p class="text-sm text-gray-500 mt-1">${escapeHtml(subject.code)}</p>
+                ${subject.description ? `<p class="text-xs text-gray-400 mt-2">${escapeHtml(subject.description)}</p>` : ''}
             </div>
         `).join('');
     } catch (error) {
@@ -822,7 +822,7 @@ async function loadAssignmentsPage() {
 async function loadAssignmentsList() {
     try {
         const response = await api.getSubjectAssignments();
-        const assignments = response.data?.results || response.data || [];
+        const assignments = listOf(response);
         
         const table = document.getElementById('assignments-table');
         
@@ -841,16 +841,16 @@ async function loadAssignmentsList() {
         table.innerHTML = assignments.map(assignment => `
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${assignment.teacher_name || 'N/A'}</div>
+                    <div class="text-sm font-medium text-gray-900">${escapeHtml(assignment.teacher_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${assignment.subject_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(assignment.subject_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${assignment.section_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(assignment.section_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${assignment.academic_year_name || 'N/A'}</div>
+                    <div class="text-sm text-gray-900">${escapeHtml(assignment.academic_year_name || 'N/A')}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${assignment.is_active 
@@ -949,7 +949,7 @@ async function deleteAssignment(id) {
 async function loadAcademicYearsForSelect(selectId) {
     try {
         const response = await api.getAcademicYears();
-        const years = response.data?.results || response.data || [];
+        const years = listOf(response);
         const select = document.getElementById(selectId);
         
         years.forEach(year => {
@@ -966,7 +966,7 @@ async function loadAcademicYearsForSelect(selectId) {
 async function loadGradeLevelsForSelect(selectId) {
     try {
         const response = await api.getGradeLevels();
-        const grades = response.data?.results || response.data || [];
+        const grades = listOf(response);
         const select = document.getElementById(selectId);
         
         grades.forEach(grade => {
@@ -983,7 +983,7 @@ async function loadGradeLevelsForSelect(selectId) {
 async function loadSectionsForSelect(selectId) {
     try {
         const response = await api.getClassSections();
-        const sections = response.data?.results || response.data || [];
+        const sections = listOf(response);
         const select = document.getElementById(selectId);
         
         sections.forEach(section => {
@@ -1000,7 +1000,7 @@ async function loadSectionsForSelect(selectId) {
 async function loadSubjectsForSelect(selectId) {
     try {
         const response = await api.getSubjects();
-        const subjects = response.data?.results || response.data || [];
+        const subjects = listOf(response);
         const select = document.getElementById(selectId);
         
         subjects.forEach(subject => {
@@ -1017,13 +1017,13 @@ async function loadSubjectsForSelect(selectId) {
 async function loadTeachersForSelect(selectId) {
     try {
         const response = await api.getTeacherProfiles();
-        const teachers = response.data?.results || response.data || [];
+        const teachers = listOf(response);
         const select = document.getElementById(selectId);
         
         teachers.forEach(teacher => {
             const option = document.createElement('option');
             option.value = teacher.user || teacher.id;
-            option.textContent = teacher.user_name || teacher.employee_id || 'Teacher';
+            option.textContent = teacher.user_full_name || teacher.employee_id || 'Teacher';
             select.appendChild(option);
         });
     } catch (error) {

@@ -4,13 +4,24 @@
 
 // Global state
 let currentUser = null;
+// The signed-in user's StudentProfile / TeacherProfile / ParentProfile.
+// Attendance, grades and guardian links are all keyed by this profile's UUID
+// rather than by currentUser.id, so it is resolved once at startup and reused.
+let currentProfile = null;
 let currentPage = 'dashboard';
+
+/**
+ * The caller's own profile UUID, or null for a director (who has none).
+ */
+function myProfileId() {
+    return currentProfile?.id ?? null;
+}
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     if (!api.isAuthenticated()) {
-        window.location.href = '/index.html';
+        window.location.href = LOGIN_PAGE;
         return;
     }
 
@@ -18,24 +29,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Load user data
         const response = await api.getMe();
         if (response.success) {
-            currentUser = response.data;
+            currentUser = itemOf(response);
+            api.setUser(currentUser);
+            await loadMyProfile();
             updateUserUI();
             setupNavigation();
             navigateTo('dashboard');
         }
     } catch (error) {
         console.error('Failed to load user data:', error);
-        window.location.href = '/index.html';
+        window.location.href = LOGIN_PAGE;
     }
 });
+
+/**
+ * Resolve the domain profile for the signed-in user.
+ *
+ * Directors have no profile, and a freshly created account may not have one
+ * yet, so a failure here is not fatal - the pages that need it surface their
+ * own message.
+ */
+async function loadMyProfile() {
+    if (!currentUser || currentUser.role === 'DIRECTOR') {
+        currentProfile = null;
+        return;
+    }
+
+    try {
+        const response = await api.getMyProfile();
+        currentProfile = itemOf(response)?.profile ?? null;
+    } catch (error) {
+        currentProfile = null;
+        console.warn('No enrollment profile for this account yet:', error.message);
+    }
+}
 
 // Update user UI elements
 function updateUserUI() {
     if (!currentUser) return;
 
     const initials = `${currentUser.first_name?.[0] || ''}${currentUser.last_name?.[0] || ''}`.toUpperCase();
+    const fullName = [currentUser.first_name, currentUser.last_name]
+        .filter(Boolean)
+        .join(' ') || currentUser.email;
+
     document.getElementById('user-initials').textContent = initials;
-    document.getElementById('user-name').textContent = currentUser.get_full_name || `${currentUser.first_name} ${currentUser.last_name}`;
+    document.getElementById('user-name').textContent = fullName;
     document.getElementById('user-role').textContent = currentUser.role;
 }
 
@@ -465,7 +504,7 @@ async function loadDashboard() {
 
     content.innerHTML = `
         <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Welcome back, ${currentUser?.first_name || 'User'}!</h2>
+            <h2 class="text-2xl font-bold text-gray-900">Welcome back, ${escapeHtml(currentUser?.first_name || 'User')}!</h2>
             <p class="text-gray-600 mt-1">Here's what's happening with your school today.</p>
         </div>
         ${statsHTML}
@@ -479,22 +518,99 @@ async function loadDashboard() {
 // Load dashboard statistics
 async function loadDashboardStats() {
     const role = currentUser?.role;
-    
+
     try {
         if (role === 'DIRECTOR') {
             const [students, teachers, subjects, years] = await Promise.all([
-                api.getStudentProfiles().catch(() => ({ count: 0 })),
-                api.getTeacherProfiles().catch(() => ({ count: 0 })),
-                api.getSubjects().catch(() => ({ count: 0 })),
-                api.getAcademicYears().catch(() => ({ results: [] }))
+                api.getStudentProfiles().catch(() => null),
+                api.getTeacherProfiles().catch(() => null),
+                api.getSubjects().catch(() => null),
+                api.getAcademicYears().catch(() => null),
             ]);
-            
-            document.getElementById('stat-students').textContent = students.count || students.data?.length || 0;
-            document.getElementById('stat-teachers').textContent = teachers.count || teachers.data?.length || 0;
-            document.getElementById('stat-subjects').textContent = subjects.count || subjects.data?.length || 0;
-            
-            const activeYear = years.data?.results?.find(y => y.is_active);
+
+            const countOf = (response) =>
+                response?.data?.count ?? listOf(response).length;
+
+            document.getElementById('stat-students').textContent = countOf(students);
+            document.getElementById('stat-teachers').textContent = countOf(teachers);
+            document.getElementById('stat-subjects').textContent = countOf(subjects);
+
+            const activeYear = listOf(years).find((y) => y.is_active);
             document.getElementById('stat-year').textContent = activeYear?.name || 'None';
+        } else if (role === 'TEACHER') {
+            const assignments = await api
+                .getSubjectAssignments({ teacher_id: currentUser.id })
+                .catch(() => null);
+            const rows = listOf(assignments);
+
+            document.getElementById('stat-assignments').textContent = rows.length;
+
+            const sectionIds = [...new Set(rows.map((a) => a.section).filter(Boolean))];
+            const rosters = await Promise.all(
+                sectionIds.map((id) => api.getStudentsBySection(id).catch(() => null))
+            );
+            const studentIds = new Set(
+                rosters.flatMap((r) => listOf(r).map((s) => s.id))
+            );
+            document.getElementById('stat-my-students').textContent = studentIds.size;
+
+            const today = new Date().toISOString().split('T')[0];
+            const todays = await api
+                .getAttendanceRecords({ date: today })
+                .catch(() => null);
+            document.getElementById('stat-today-attendance').textContent =
+                todays?.data?.count ?? listOf(todays).length;
+        } else if (role === 'STUDENT') {
+            const profileId = myProfileId();
+            if (!profileId) return;
+
+            const records = listOf(
+                await api.getAttendanceRecords({ student_id: profileId }).catch(() => null)
+            );
+            if (records.length) {
+                const present = records.filter(
+                    (r) => r.status === 'PRESENT' || r.status === 'LATE'
+                ).length;
+                const rate = Math.round((present / records.length) * 100);
+                document.getElementById('stat-attendance-rate').textContent = `${rate}%`;
+            } else {
+                document.getElementById('stat-attendance-rate').textContent = 'N/A';
+            }
+
+            const activeYear = await api.getActiveAcademicYear().catch(() => null);
+            const yearId = itemOf(activeYear)?.id;
+            if (yearId) {
+                const report = await api.getMyReportCard(yearId).catch(() => null);
+                const gpa = itemOf(report)?.overall_gpa;
+                document.getElementById('stat-gpa').textContent =
+                    gpa !== undefined && gpa !== null ? gpa.toFixed(2) : 'N/A';
+            } else {
+                document.getElementById('stat-gpa').textContent = 'N/A';
+            }
+        } else if (role === 'PARENT') {
+            const profileId = myProfileId();
+            if (!profileId) return;
+
+            const children = listOf(
+                await api.getParentChildren(profileId).catch(() => null)
+            );
+            document.getElementById('stat-children').textContent = children.length;
+
+            const allRecords = await Promise.all(
+                children.map((c) =>
+                    api.getAttendanceRecords({ student_id: c.student }).catch(() => null)
+                )
+            );
+            const records = allRecords.flatMap((r) => listOf(r));
+            if (records.length) {
+                const present = records.filter(
+                    (r) => r.status === 'PRESENT' || r.status === 'LATE'
+                ).length;
+                const rate = Math.round((present / records.length) * 100);
+                document.getElementById('stat-children-attendance').textContent = `${rate}%`;
+            } else {
+                document.getElementById('stat-children-attendance').textContent = 'N/A';
+            }
         }
     } catch (error) {
         console.error('Failed to load stats:', error);
@@ -502,6 +618,9 @@ async function loadDashboardStats() {
 }
 
 // Toggle mobile menu
+//
+// The sidebar is off-canvas by default and pinned open from the `lg`
+// breakpoint up, so toggling only has a visible effect on small screens.
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('-translate-x-full');
@@ -512,7 +631,7 @@ async function handleLogout() {
     try {
         await api.logout();
     } finally {
-        window.location.href = '/index.html';
+        window.location.href = LOGIN_PAGE;
     }
 }
 
@@ -526,7 +645,7 @@ function openModal(title, content) {
                 <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900">${title}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(title)}</h3>
                             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -560,7 +679,7 @@ function showToast(message, type = 'success') {
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             ${icon}
         </svg>
-        <span>${message}</span>
+        <span>${escapeHtml(message)}</span>
     `;
     
     toastContainer.appendChild(toast);
