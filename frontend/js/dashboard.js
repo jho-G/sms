@@ -517,6 +517,62 @@ async function loadDashboard() {
     loadDashboardStats();
 }
 
+// ============================================================
+// Interactive Table CSV Export Utility
+// ============================================================
+function exportTableToCSV(tableIdOrElement, filename = 'export.csv') {
+    const table = typeof tableIdOrElement === 'string'
+        ? document.getElementById(tableIdOrElement)
+        : tableIdOrElement;
+    if (!table) return;
+
+    const rows = Array.from(table.querySelectorAll('tr:not(.table-no-results)'));
+    if (rows.length === 0) {
+        showToast('No data available to export', 'warning');
+        return;
+    }
+
+    const csvContent = [];
+
+    rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+
+        const cells = Array.from(row.querySelectorAll('th, td'));
+        const rowData = [];
+
+        cells.forEach(cell => {
+            const text = (cell.innerText || cell.textContent || '').trim();
+            if (cell.tagName.toLowerCase() === 'th' && text.toLowerCase() === 'actions') return;
+            if (cell.querySelector('button') && !cell.querySelector('span')) return;
+
+            const cleanText = text.replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
+            rowData.push(`"${cleanText}"`);
+        });
+
+        if (rowData.length > 0) {
+            csvContent.push(rowData.join(','));
+        }
+    });
+
+    if (csvContent.length <= 1) {
+        showToast('No data records found to export', 'warning');
+        return;
+    }
+
+    const blob = new Blob([csvContent.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`Exported ${filename} successfully!`, 'success');
+}
+
 // Interactive Number Count-up Animation
 function animateNumberCount(target, endValue, duration = 800, suffix = '') {
     const el = typeof target === 'string' ? document.getElementById(target) : target;
