@@ -1,6 +1,7 @@
 from django.urls import path
 
 from enrollment.api.views import (
+    MyProfileView,
     ParentChildrenView,
     ParentProfileDetailView,
     ParentProfileListCreateView,
@@ -18,6 +19,12 @@ from enrollment.api.views import (
 app_name = "enrollment"
 
 urlpatterns = [
+    # Current user's own profile (resolves User UUID -> profile UUID)
+    path(
+        "me/",
+        MyProfileView.as_view(),
+        name="my-profile",
+    ),
     # Student profiles
     path(
         "students/",

@@ -55,7 +55,6 @@ class GradeLevel(TimeStampedModel):
     )
     level = models.IntegerField(
         choices=GradeChoices.choices,
-        unique=True,
         help_text="Numeric grade level (9-12)",
     )
     academic_year = models.ForeignKey(

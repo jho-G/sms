@@ -40,7 +40,19 @@ from academics.services import (
     deactivate_subject_assignment,
     update_class_section,
 )
-from authentication.permissions import IsDirector
+from authentication.permissions import IsDirector, IsDirectorOrTeacherReadOnly
+
+
+def _scope_assignments_to_caller(queryset, user):
+    """
+    Teachers may only ever see their own assignments; directors see all.
+
+    Teachers need assignment reads to take attendance and enter marks, but
+    must not be able to browse the whole timetable.
+    """
+    if user.role == "TEACHER":
+        return queryset.filter(teacher_id=user.id)
+    return queryset
 
 
 # ============================================================
@@ -349,10 +361,16 @@ class SubjectAssignmentListView(generics.ListCreateAPIView):
     """
     GET /api/academics/assignments/
     POST /api/academics/assignments/
-    List all subject assignments or create a new one (Director only).
+    List subject assignments (Director: all, Teacher: own) or create one
+    (Director only).
     """
 
-    permission_classes = [IsDirector]
+    permission_classes = [IsDirectorOrTeacherReadOnly]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsDirector()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -383,22 +401,20 @@ class SubjectAssignmentListView(generics.ListCreateAPIView):
         if academic_year_id:
             queryset = queryset.filter(academic_year_id=academic_year_id)
 
-        return queryset
+        return _scope_assignments_to_caller(queryset, self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        academic_year = serializer.validated_data.get("academic_year")
 
         try:
             assignment = assign_teacher_to_subject(
                 teacher_id=str(serializer.validated_data["teacher"].id),
                 subject_id=str(serializer.validated_data["subject"].id),
                 section_id=str(serializer.validated_data["section"].id),
-                academic_year_id=str(
-                    serializer.validated_data.get("academic_year", "")
-                )
-                if serializer.validated_data.get("academic_year")
-                else None,
+                academic_year_id=str(academic_year.id) if academic_year else None,
             )
             return Response(
                 {
@@ -421,12 +437,20 @@ class SubjectAssignmentListView(generics.ListCreateAPIView):
 class SubjectAssignmentDetailView(generics.RetrieveDestroyAPIView):
     """
     GET/DELETE /api/academics/assignments/<uuid>/
-    Retrieve or deactivate a subject assignment (Director only).
+    Retrieve (Director, or the assigned teacher) or deactivate (Director).
     """
 
     serializer_class = SubjectAssignmentSerializer
-    permission_classes = [IsDirector]
+    permission_classes = [IsDirectorOrTeacherReadOnly]
     queryset = SubjectAssignment.objects.all()
+
+    def get_queryset(self):
+        return _scope_assignments_to_caller(
+            SubjectAssignment.objects.select_related(
+                "teacher", "subject", "section", "academic_year"
+            ).all(),
+            self.request.user,
+        )
 
     def destroy(self, request, *args, **kwargs):
         """Soft delete - deactivate instead of hard delete."""
@@ -454,14 +478,15 @@ class SubjectAssignmentDetailView(generics.RetrieveDestroyAPIView):
 class TeacherAssignmentsView(APIView):
     """
     GET /api/academics/assignments/teacher/<uuid>/
-    Get all assignments for a specific teacher (Director only).
+    Get all assignments for a teacher (Director: any, Teacher: own only).
     """
 
-    permission_classes = [IsDirector]
+    permission_classes = [IsDirectorOrTeacherReadOnly]
 
     def get(self, request, teacher_id):
         academic_year_id = request.query_params.get("academic_year_id")
         assignments = get_teacher_assignments(teacher_id, academic_year_id)
+        assignments = _scope_assignments_to_caller(assignments, request.user)
 
         return Response(
             {
@@ -474,13 +499,14 @@ class TeacherAssignmentsView(APIView):
 class SectionAssignmentsView(APIView):
     """
     GET /api/academics/assignments/section/<uuid>/
-    Get all assignments for a specific section (Director only).
+    Get all assignments for a section (Director: all, Teacher: own only).
     """
 
-    permission_classes = [IsDirector]
+    permission_classes = [IsDirectorOrTeacherReadOnly]
 
     def get(self, request, section_id):
         assignments = get_section_assignments(section_id)
+        assignments = _scope_assignments_to_caller(assignments, request.user)
 
         return Response(
             {

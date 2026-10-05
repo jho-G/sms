@@ -256,3 +256,85 @@ def _percentage_to_letter(percentage: Decimal) -> str:
         return "D"
     else:
         return "F"
+
+
+# ---------------------------------------------------------------------------
+# Role-based scoping
+# ---------------------------------------------------------------------------
+
+
+def scope_grades_to_user(queryset: QuerySet[Grade], user) -> QuerySet[Grade]:
+    """
+    Restrict a grade queryset to the records ``user`` may read.
+
+    The list endpoint takes a ``student_id`` query parameter, so without this
+    any signed-in student could read another student's marks by editing the
+    URL.
+
+        DIRECTOR  every grade
+        TEACHER   grades under their own subject assignments
+        STUDENT   their own grades
+        PARENT    grades for the children linked to them
+    """
+    role = getattr(user, "role", None)
+
+    if role == "DIRECTOR":
+        return queryset
+    if role == "TEACHER":
+        return queryset.filter(
+            assessment_category__subject_assignment__teacher_id=user.id
+        )
+    if role == "STUDENT":
+        return queryset.filter(student__user_id=user.id)
+    if role == "PARENT":
+        return queryset.filter(
+            student__guardian_links__parent__user_id=user.id
+        ).distinct()
+    return queryset.none()
+
+
+def scope_categories_to_user(
+    queryset: QuerySet[AssessmentCategory], user
+) -> QuerySet[AssessmentCategory]:
+    """
+    Restrict assessment categories to those ``user`` may see.
+
+    Teachers previously saw -- and could delete -- every other teacher's
+    weighting scheme.
+    """
+    role = getattr(user, "role", None)
+
+    if role == "DIRECTOR":
+        return queryset
+    if role == "TEACHER":
+        return queryset.filter(subject_assignment__teacher_id=user.id)
+    return queryset.none()
+
+
+def can_view_student_report(user, student_id: str) -> bool:
+    """
+    Whether ``user`` may read the full report card for ``student_id``.
+
+    Directors may read any; teachers only students they actually teach;
+    students only their own; parents only their children's.
+    """
+    from enrollment.models import StudentProfile
+
+    role = getattr(user, "role", None)
+
+    if role == "DIRECTOR":
+        return True
+
+    queryset = StudentProfile.objects.filter(id=student_id)
+
+    if role == "TEACHER":
+        return queryset.filter(
+            section__subject_assignments__teacher_id=user.id
+        ).exists()
+    if role == "STUDENT":
+        return queryset.filter(user_id=user.id).exists()
+    if role == "PARENT":
+        return queryset.filter(
+            guardian_links__parent__user_id=user.id
+        ).exists()
+    return False

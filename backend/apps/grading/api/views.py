@@ -16,10 +16,13 @@ from grading.api.serializers import (
 from grading.models import AssessmentCategory, Grade
 from grading.selectors import (
     calculate_subject_total,
+    can_view_student_report,
     get_assessment_categories_by_subject,
     get_grades_by_assessment_category,
     get_student_grades,
     get_student_report_card,
+    scope_categories_to_user,
+    scope_grades_to_user,
 )
 from grading.services import (
     create_assessment_category,
@@ -49,6 +52,8 @@ class AssessmentCategoryListView(generics.ListCreateAPIView):
             "subject_assignment__teacher",
         ).all()
 
+        queryset = scope_categories_to_user(queryset, self.request.user)
+
         # Filter by subject assignment
         subject_assignment_id = self.request.query_params.get(
             "subject_assignment_id"
@@ -70,6 +75,21 @@ class AssessmentCategoryListView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
+
+        if (
+            request.user.role == "TEACHER"
+            and data["subject_assignment"].teacher_id != request.user.id
+        ):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You can only define assessments for your own classes."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             category = create_assessment_category(
                 name=data["name"],
@@ -95,16 +115,23 @@ class AssessmentCategoryListView(generics.ListCreateAPIView):
 class AssessmentCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET/PUT/PATCH/DELETE /api/grading/categories/<uuid>/
+
+    Teachers are limited to categories on their own subject assignments.
     """
 
     serializer_class = AssessmentCategorySerializer
     permission_classes = [IsDirectorOrTeacher]
-    queryset = AssessmentCategory.objects.select_related(
-        "subject_assignment",
-        "subject_assignment__subject",
-        "subject_assignment__section",
-        "subject_assignment__teacher",
-    ).all()
+
+    def get_queryset(self):
+        return scope_categories_to_user(
+            AssessmentCategory.objects.select_related(
+                "subject_assignment",
+                "subject_assignment__subject",
+                "subject_assignment__section",
+                "subject_assignment__teacher",
+            ).all(),
+            self.request.user,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +142,9 @@ class AssessmentCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class GradeListView(generics.ListAPIView):
     """
     GET /api/grading/grades/ – List grades with optional filters
+
+    Results are narrowed to what the caller may read before the
+    query-parameter filters are applied.
     """
 
     serializer_class = GradeSerializer
@@ -130,6 +160,8 @@ class GradeListView(generics.ListAPIView):
             "recorded_by",
         ).all()
 
+        queryset = scope_grades_to_user(queryset, self.request.user)
+
         student_id = self.request.query_params.get("student_id")
         if student_id:
             queryset = queryset.filter(student_id=student_id)
@@ -144,18 +176,25 @@ class GradeListView(generics.ListAPIView):
 class GradeDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET/PUT/PATCH/DELETE /api/grading/grades/<uuid>/
+
+    Teachers are limited to grades under their own subject assignments.
     """
 
     serializer_class = GradeSerializer
     permission_classes = [IsDirectorOrTeacher]
-    queryset = Grade.objects.select_related(
-        "student",
-        "student__user",
-        "assessment_category",
-        "assessment_category__subject_assignment",
-        "assessment_category__subject_assignment__subject",
-        "recorded_by",
-    ).all()
+
+    def get_queryset(self):
+        return scope_grades_to_user(
+            Grade.objects.select_related(
+                "student",
+                "student__user",
+                "assessment_category",
+                "assessment_category__subject_assignment",
+                "assessment_category__subject_assignment__subject",
+                "recorded_by",
+            ).all(),
+            self.request.user,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +215,20 @@ class GradeRecordView(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
+
+        if (
+            data["assessment_category"].subject_assignment.teacher_id
+            != request.user.id
+        ):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You can only record marks for your own classes."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         try:
             grade = record_single_grade(
@@ -220,6 +273,20 @@ class BulkGradeSubmitView(APIView):
 
         data = serializer.validated_data
 
+        if not AssessmentCategory.objects.filter(
+            id=data["assessment_category_id"],
+            subject_assignment__teacher_id=request.user.id,
+        ).exists():
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You can only record marks for your own classes."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             grades = record_student_grades(
                 assessment_category_id=str(data["assessment_category_id"]),
@@ -255,6 +322,17 @@ class SubjectTotalView(APIView):
     permission_classes = [IsDirectorOrTeacher]
 
     def get(self, request, student_id, subject_assignment_id):
+        if not can_view_student_report(request.user, str(student_id)):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You do not have permission to view this student's marks."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         result = calculate_subject_total(
             student_id=student_id,
             subject_assignment_id=subject_assignment_id,
@@ -281,11 +359,27 @@ class ReportCardView(APIView):
     """
     GET /api/grading/report-card/<uuid:student_id>/<uuid:academic_year_id>/
     Get the full report card for a student in an academic year.
+
+    Readable by a director, a teacher who teaches the student, the student
+    themselves, or one of their linked parents. This endpoint was previously
+    open to every authenticated user, so any student could read any other
+    student's full academic record by changing the UUID in the URL.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request, student_id, academic_year_id):
+        if not can_view_student_report(request.user, str(student_id)):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You do not have permission to view this report card."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         result = get_student_report_card(
             student_id=student_id,
             academic_year_id=academic_year_id,

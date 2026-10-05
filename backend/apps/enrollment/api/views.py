@@ -1,7 +1,14 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from authentication.permissions import (
+    IsDirector,
+    IsDirectorOrGuardianParticipant,
+    IsDirectorOrProfileOwner,
+    IsDirectorOrTeacherReadOnly,
+)
 from enrollment.api.serializers import (
     ParentProfileCreateSerializer,
     ParentProfileSerializer,
@@ -20,7 +27,10 @@ from enrollment.models import (
 )
 from enrollment.selectors import (
     get_parent_children,
+    get_parent_profile_by_user,
     get_student_guardians,
+    get_student_profile_by_user,
+    get_teacher_profile_by_user,
     list_active_parent_profiles,
     list_active_student_profiles,
     list_active_teacher_profiles,
@@ -36,6 +46,81 @@ from enrollment.services import (
 )
 
 
+def _visible_student_profiles(user):
+    """
+    Narrow the student roster to what ``user`` is allowed to see.
+
+    Directors and teachers see every active student. A student sees only
+    their own record, and a parent only the children linked to them.
+    """
+    queryset = list_active_student_profiles()
+
+    if user.role in ("DIRECTOR", "TEACHER"):
+        return queryset
+    if user.role == "STUDENT":
+        return queryset.filter(user_id=user.id)
+    if user.role == "PARENT":
+        return queryset.filter(
+            guardian_links__parent__user_id=user.id
+        ).distinct()
+    return queryset.none()
+
+
+# ---------------------------------------------------------------------------
+# Current User's Profile
+# ---------------------------------------------------------------------------
+
+
+class MyProfileView(APIView):
+    """
+    GET /api/enrollment/me/ – Resolve the caller's own domain profile.
+
+    Attendance, grades and guardian links are keyed by StudentProfile /
+    ParentProfile UUIDs, not by the User UUID that the client holds after
+    login. Without this endpoint the browser client had no way to find its
+    own profile id and silently queried with the wrong key, so every
+    student and parent page came back empty.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    #: role -> (selector, serializer)
+    PROFILE_RESOLVERS = {
+        "STUDENT": (get_student_profile_by_user, StudentProfileSerializer),
+        "TEACHER": (get_teacher_profile_by_user, TeacherProfileSerializer),
+        "PARENT": (get_parent_profile_by_user, ParentProfileSerializer),
+    }
+
+    def get(self, request):
+        role = request.user.role
+        resolver = self.PROFILE_RESOLVERS.get(role)
+
+        if resolver is None:
+            # Directors have no domain profile; that is not an error.
+            return Response({"role": role, "profile": None})
+
+        selector, serializer_class = resolver
+        profile = selector(str(request.user.id))
+
+        if profile is None:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": (
+                            f"No {role.lower()} profile exists for this account. "
+                            "Ask a director to complete your enrollment."
+                        )
+                    },
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {"role": role, "profile": serializer_class(profile).data}
+        )
+
+
 # ---------------------------------------------------------------------------
 # Student Profile Views
 # ---------------------------------------------------------------------------
@@ -43,14 +128,19 @@ from enrollment.services import (
 
 class StudentProfileListCreateView(generics.ListCreateAPIView):
     """
-    GET  /api/enrollment/students/       – List all student profiles
-    POST /api/enrollment/students/       – Create a student profile
+    GET  /api/enrollment/students/       – List student profiles in scope
+    POST /api/enrollment/students/       – Create a student profile (Director)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsDirector()]
+        return super().get_permissions()
 
     def get_queryset(self):
-        return list_active_student_profiles()
+        return _visible_student_profiles(self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -82,13 +172,13 @@ class StudentProfileListCreateView(generics.ListCreateAPIView):
 class StudentProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET    /api/enrollment/students/<uuid>/   – Retrieve
-    PUT    /api/enrollment/students/<uuid>/   – Full update
-    PATCH  /api/enrollment/students/<uuid>/   – Partial update
-    DELETE /api/enrollment/students/<uuid>/   – Delete
+    PUT    /api/enrollment/students/<uuid>/   – Full update (Director)
+    PATCH  /api/enrollment/students/<uuid>/   – Partial update (Director)
+    DELETE /api/enrollment/students/<uuid>/   – Delete (Director)
     """
 
     queryset = StudentProfile.objects.select_related("user", "section").all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
 
     def get_serializer_class(self):
         if self.request.method in ("PUT", "PATCH"):
@@ -98,11 +188,14 @@ class StudentProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class StudentProfilesBySectionView(generics.ListAPIView):
     """
-    GET /api/enrollment/students/by-section/<uuid>/ – List students in a section
+    GET /api/enrollment/students/by-section/<uuid>/ – Section roster
+
+    Teachers need this to take attendance and enter marks, so it is readable
+    by directors and teachers but never writable.
     """
 
     serializer_class = StudentProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrTeacherReadOnly]
 
     def get_queryset(self):
         return list_students_by_section(self.kwargs["section_id"])
@@ -115,14 +208,22 @@ class StudentProfilesBySectionView(generics.ListAPIView):
 
 class TeacherProfileListCreateView(generics.ListCreateAPIView):
     """
-    GET  /api/enrollment/teachers/       – List all teacher profiles
-    POST /api/enrollment/teachers/       – Create a teacher profile
+    GET  /api/enrollment/teachers/       – List teacher profiles in scope
+    POST /api/enrollment/teachers/       – Create a teacher profile (Director)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsDirector()]
+        return super().get_permissions()
 
     def get_queryset(self):
-        return list_active_teacher_profiles()
+        queryset = list_active_teacher_profiles()
+        if self.request.user.role == "DIRECTOR":
+            return queryset
+        return queryset.filter(user_id=self.request.user.id)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -153,13 +254,13 @@ class TeacherProfileListCreateView(generics.ListCreateAPIView):
 class TeacherProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET    /api/enrollment/teachers/<uuid>/   – Retrieve
-    PUT    /api/enrollment/teachers/<uuid>/   – Full update
-    PATCH  /api/enrollment/teachers/<uuid>/   – Partial update
-    DELETE /api/enrollment/teachers/<uuid>/   – Delete
+    PUT    /api/enrollment/teachers/<uuid>/   – Full update (Director)
+    PATCH  /api/enrollment/teachers/<uuid>/   – Partial update (Director)
+    DELETE /api/enrollment/teachers/<uuid>/   – Delete (Director)
     """
 
     queryset = TeacherProfile.objects.select_related("user").all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
 
     def get_serializer_class(self):
         if self.request.method in ("PUT", "PATCH"):
@@ -174,14 +275,22 @@ class TeacherProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class ParentProfileListCreateView(generics.ListCreateAPIView):
     """
-    GET  /api/enrollment/parents/       – List all parent profiles
-    POST /api/enrollment/parents/       – Create a parent profile
+    GET  /api/enrollment/parents/       – List parent profiles in scope
+    POST /api/enrollment/parents/       – Create a parent profile (Director)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsDirector()]
+        return super().get_permissions()
 
     def get_queryset(self):
-        return list_active_parent_profiles()
+        queryset = list_active_parent_profiles()
+        if self.request.user.role == "DIRECTOR":
+            return queryset
+        return queryset.filter(user_id=self.request.user.id)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -211,13 +320,13 @@ class ParentProfileListCreateView(generics.ListCreateAPIView):
 class ParentProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET    /api/enrollment/parents/<uuid>/   – Retrieve
-    PUT    /api/enrollment/parents/<uuid>/   – Full update
-    PATCH  /api/enrollment/parents/<uuid>/   – Partial update
-    DELETE /api/enrollment/parents/<uuid>/   – Delete
+    PUT    /api/enrollment/parents/<uuid>/   – Full update (Director)
+    PATCH  /api/enrollment/parents/<uuid>/   – Partial update (Director)
+    DELETE /api/enrollment/parents/<uuid>/   – Delete (Director)
     """
 
     queryset = ParentProfile.objects.select_related("user").all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrProfileOwner]
 
     def get_serializer_class(self):
         if self.request.method in ("PUT", "PATCH"):
@@ -232,16 +341,30 @@ class ParentProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class StudentGuardianListCreateView(generics.ListCreateAPIView):
     """
-    GET  /api/enrollment/guardians/             – List all guardian links
-    POST /api/enrollment/guardians/             – Create a guardian link
+    GET  /api/enrollment/guardians/             – List guardian links in scope
+    POST /api/enrollment/guardians/             – Create a link (Director)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrGuardianParticipant]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsDirector()]
+        return super().get_permissions()
 
     def get_queryset(self):
-        return StudentGuardian.objects.select_related(
+        queryset = StudentGuardian.objects.select_related(
             "parent", "parent__user", "student", "student__user"
         ).all()
+
+        user = self.request.user
+        if user.role in ("DIRECTOR", "TEACHER"):
+            return queryset
+        if user.role == "PARENT":
+            return queryset.filter(parent__user_id=user.id)
+        if user.role == "STUDENT":
+            return queryset.filter(student__user_id=user.id)
+        return queryset.none()
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -271,14 +394,14 @@ class StudentGuardianListCreateView(generics.ListCreateAPIView):
 class StudentGuardianDetailView(generics.RetrieveDestroyAPIView):
     """
     GET    /api/enrollment/guardians/<uuid>/   – Retrieve
-    DELETE /api/enrollment/guardians/<uuid>/   – Delete (unlink)
+    DELETE /api/enrollment/guardians/<uuid>/   – Unlink (Director)
     """
 
     queryset = StudentGuardian.objects.select_related(
         "parent", "parent__user", "student", "student__user"
     ).all()
     serializer_class = StudentGuardianSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrGuardianParticipant]
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -295,30 +418,49 @@ class StudentGuardiansView(generics.ListAPIView):
     """
 
     serializer_class = StudentGuardianSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrGuardianParticipant]
 
     def get_queryset(self):
-        return get_student_guardians(self.kwargs["student_id"])
+        queryset = get_student_guardians(self.kwargs["student_id"])
+
+        user = self.request.user
+        if user.role in ("DIRECTOR", "TEACHER"):
+            return queryset
+        if user.role == "PARENT":
+            return queryset.filter(parent__user_id=user.id)
+        if user.role == "STUDENT":
+            return queryset.filter(student__user_id=user.id)
+        return queryset.none()
 
 
 class ParentChildrenView(generics.ListAPIView):
     """
     GET /api/enrollment/guardians/parent/<uuid>/ – Get children of a parent
+
+    ``parent_id`` is a ParentProfile UUID, not a User UUID. Parents may only
+    read their own list.
     """
 
     serializer_class = StudentGuardianSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirectorOrGuardianParticipant]
 
     def get_queryset(self):
-        return get_parent_children(self.kwargs["parent_id"])
+        queryset = get_parent_children(self.kwargs["parent_id"])
+
+        user = self.request.user
+        if user.role in ("DIRECTOR", "TEACHER"):
+            return queryset
+        if user.role == "PARENT":
+            return queryset.filter(parent__user_id=user.id)
+        return queryset.none()
 
 
 class SetPrimaryGuardianView(generics.GenericAPIView):
     """
-    POST /api/enrollment/guardians/set-primary/ – Set a parent as primary guardian
+    POST /api/enrollment/guardians/set-primary/ – Set a parent as primary (Director)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDirector]
     serializer_class = StudentGuardianCreateSerializer
 
     def post(self, request, *args, **kwargs):

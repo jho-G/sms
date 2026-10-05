@@ -20,6 +20,11 @@ class AssessmentCategorySerializer(serializers.ModelSerializer):
     section_name = serializers.CharField(
         source="subject_assignment.section.__str__", read_only=True
     )
+    #: Flat section UUID so a client can fetch the roster for this category
+    #: without a second round-trip through the subject assignment.
+    section = serializers.UUIDField(
+        source="subject_assignment.section_id", read_only=True
+    )
     teacher_name = serializers.CharField(
         source="subject_assignment.teacher.get_full_name", read_only=True
     )
@@ -33,6 +38,7 @@ class AssessmentCategorySerializer(serializers.ModelSerializer):
             "subject_assignment",
             "subject_name",
             "subject_code",
+            "section",
             "section_name",
             "teacher_name",
             "weight",

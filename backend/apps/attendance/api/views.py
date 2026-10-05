@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from academics.models import SubjectAssignment
 from attendance.api.serializers import (
     AttendanceCreateSerializer,
     AttendanceRecordInputSerializer,
@@ -19,6 +20,7 @@ from attendance.selectors import (
     get_attendance_by_subject_assignment,
     get_attendance_for_date,
     get_student_absence_count,
+    scope_attendance_to_user,
 )
 from attendance.services import bulk_mark_attendance, mark_single_attendance
 from authentication.permissions import IsDirector, IsTeacher, IsDirectorOrTeacher
@@ -33,6 +35,9 @@ class AttendanceListView(generics.ListAPIView):
     """
     GET /api/attendance/
     List attendance records with optional filters.
+
+    Results are always narrowed to what the caller may read before the
+    query-parameter filters are applied.
     """
 
     serializer_class = AttendanceSerializer
@@ -47,6 +52,8 @@ class AttendanceListView(generics.ListAPIView):
             "subject_assignment__section",
             "recorded_by",
         ).all()
+
+        queryset = scope_attendance_to_user(queryset, self.request.user)
 
         # Filter by student
         student_id = self.request.query_params.get("student_id")
@@ -79,18 +86,25 @@ class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET/PUT/PATCH/DELETE /api/attendance/<uuid>/
     Retrieve, update, or delete a single attendance record.
+
+    Teachers are limited to records on their own subject assignments.
     """
 
     serializer_class = AttendanceSerializer
     permission_classes = [IsDirectorOrTeacher]
-    queryset = Attendance.objects.select_related(
-        "student",
-        "student__user",
-        "subject_assignment",
-        "subject_assignment__subject",
-        "subject_assignment__section",
-        "recorded_by",
-    ).all()
+
+    def get_queryset(self):
+        return scope_attendance_to_user(
+            Attendance.objects.select_related(
+                "student",
+                "student__user",
+                "subject_assignment",
+                "subject_assignment__subject",
+                "subject_assignment__section",
+                "recorded_by",
+            ).all(),
+            self.request.user,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +127,17 @@ class AttendanceRecordView(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
+
+        if data["subject_assignment"].teacher_id != request.user.id:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You can only record attendance for your own classes."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         try:
             record = mark_single_attendance(
@@ -167,6 +192,19 @@ class BulkAttendanceSubmitView(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
+
+        if not SubjectAssignment.objects.filter(
+            id=data["subject_assignment_id"], teacher_id=request.user.id
+        ).exists():
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "message": "You can only record attendance for your own classes."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         try:
             records = bulk_mark_attendance(
@@ -223,6 +261,7 @@ class SubjectDateAttendanceView(APIView):
             subject_assignment_id=subject_assignment_id,
             target_date=parsed_date,
         )
+        records = scope_attendance_to_user(records, request.user)
 
         return Response(
             {
@@ -248,23 +287,34 @@ class StudentAbsenceSummaryView(APIView):
     def get(self, request, student_id):
         academic_year_id = request.query_params.get("academic_year_id")
 
-        absence_count = get_student_absence_count(
-            student_id=student_id,
-            academic_year_id=academic_year_id,
+        # Scope first, then count, so a teacher only ever sees absences from
+        # their own classes rather than the student's school-wide total.
+        absences = scope_attendance_to_user(
+            Attendance.objects.filter(
+                student_id=student_id,
+                status=Attendance.Status.ABSENT,
+            ),
+            request.user,
         )
+        if academic_year_id:
+            absences = absences.filter(
+                subject_assignment__academic_year_id=academic_year_id,
+            )
 
-        # Get recent absences (last 30 days)
-        recent_absences = get_attendance_by_student(
-            student_id=student_id,
-        ).filter(
-            status=Attendance.Status.ABSENT,
+        recent_absences = absences.select_related(
+            "student",
+            "student__user",
+            "subject_assignment",
+            "subject_assignment__subject",
+            "subject_assignment__section",
+            "recorded_by",
         )[:20]
 
         return Response(
             {
                 "success": True,
                 "data": {
-                    "total_absences": absence_count,
+                    "total_absences": absences.count(),
                     "recent_absences": AttendanceSerializer(
                         recent_absences, many=True
                     ).data,

@@ -156,3 +156,31 @@ def get_student_absence_count(
         )
 
     return queryset.count()
+
+
+def scope_attendance_to_user(queryset: QuerySet[Attendance], user) -> QuerySet[Attendance]:
+    """
+    Restrict an attendance queryset to the records ``user`` may read.
+
+    The list endpoint accepts a ``student_id`` query parameter, so without
+    this any signed-in student could read any other student's attendance by
+    changing one value in the URL.
+
+        DIRECTOR  every record
+        TEACHER   records belonging to their own subject assignments
+        STUDENT   their own records
+        PARENT    records for the children linked to them
+    """
+    role = getattr(user, "role", None)
+
+    if role == "DIRECTOR":
+        return queryset
+    if role == "TEACHER":
+        return queryset.filter(subject_assignment__teacher_id=user.id)
+    if role == "STUDENT":
+        return queryset.filter(student__user_id=user.id)
+    if role == "PARENT":
+        return queryset.filter(
+            student__guardian_links__parent__user_id=user.id
+        ).distinct()
+    return queryset.none()
