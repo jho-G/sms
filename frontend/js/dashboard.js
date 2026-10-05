@@ -1065,6 +1065,88 @@ function setupGlobalKeyboardShortcuts() {
     });
 }
 
+// ============================================================
+// Modern Interactive Confirmation Dialog
+// ============================================================
+function showConfirmDialog(options = {}) {
+    const {
+        title = 'Are you sure?',
+        message = 'This action cannot be undone.',
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        type = 'danger'
+    } = options;
+
+    return new Promise((resolve) => {
+        const modalContainer = document.getElementById('modal-container');
+        if (!modalContainer) {
+            resolve(confirm(message));
+            return;
+        }
+
+        const isDanger = type === 'danger';
+        const iconBg = isDanger ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600';
+        const confirmBtnClass = isDanger 
+            ? 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500' 
+            : 'bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500';
+
+        modalContainer.innerHTML = `
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity z-50 flex items-center justify-center p-4 animate-fadeIn" id="confirm-dialog-backdrop">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md animate-slideIn" onclick="event.stopPropagation()">
+                    <div class="bg-white px-6 pt-6 pb-4">
+                        <div class="sm:flex sm:items-start space-x-4">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${iconBg} sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:text-left flex-1">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900">${escapeHtml(title)}</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">${escapeHtml(message)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3.5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+                        <button type="button" id="confirm-dialog-cancel" 
+                            class="inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto transition">
+                            ${escapeHtml(cancelText)}
+                        </button>
+                        <button type="button" id="confirm-dialog-confirm" 
+                            class="inline-flex w-full justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow-xs sm:w-auto transition ${confirmBtnClass}">
+                            ${escapeHtml(confirmText)}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const cleanup = (confirmed) => {
+            window.removeEventListener('keydown', keyHandler);
+            modalContainer.innerHTML = '';
+            resolve(confirmed);
+        };
+
+        const keyHandler = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                cleanup(false);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                cleanup(true);
+            }
+        };
+
+        window.addEventListener('keydown', keyHandler);
+        document.getElementById('confirm-dialog-cancel').addEventListener('click', () => cleanup(false));
+        document.getElementById('confirm-dialog-confirm').addEventListener('click', () => cleanup(true));
+        document.getElementById('confirm-dialog-backdrop').addEventListener('click', () => cleanup(false));
+
+        document.getElementById('confirm-dialog-confirm').focus();
+    });
+}
+
 // Modal functions
 function openModal(title, content) {
     const modalContainer = document.getElementById('modal-container');

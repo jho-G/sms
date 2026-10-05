@@ -156,7 +156,13 @@ function showCreateAcademicYearModal() {
 }
 
 async function deleteAcademicYear(id) {
-    if (!confirm('Are you sure you want to delete this academic year?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Academic Year?',
+        message: 'This will delete the academic year and all associated grade levels and enrollments for that year.',
+        confirmText: 'Delete Year',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteAcademicYear(id);
@@ -330,7 +336,13 @@ async function showEditSectionModal(id) {
 }
 
 async function deleteSection(id) {
-    if (!confirm('Are you sure you want to delete this section?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Class Section?',
+        message: 'This section will be removed and any assigned students will become unassigned.',
+        confirmText: 'Delete Section',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteClassSection(id);
@@ -342,7 +354,13 @@ async function deleteSection(id) {
 }
 
 async function deleteSubject(id) {
-    if (!confirm('Are you sure you want to delete this subject?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Subject?',
+        message: 'This will remove the subject and any associated teaching assignments.',
+        confirmText: 'Delete Subject',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteSubject(id);
@@ -488,7 +506,13 @@ function showCreateGradeLevelModal() {
 }
 
 async function deleteGradeLevel(id) {
-    if (!confirm('Are you sure you want to delete this grade level?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Grade Level?',
+        message: 'This will remove the grade level and any sections attached to it.',
+        confirmText: 'Delete Grade Level',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteGradeLevel(id);
@@ -981,7 +1005,13 @@ function showCreateAssignmentModal() {
 }
 
 async function deleteAssignment(id) {
-    if (!confirm('Are you sure you want to deactivate this assignment?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Deactivate Assignment?',
+        message: 'This will deactivate the teacher assignment for this class section.',
+        confirmText: 'Deactivate',
+        type: 'warning'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteSubjectAssignment(id);

@@ -239,7 +239,13 @@ function showCreateStudentModal() {
 }
 
 async function deleteStudent(id) {
-    if (!confirm('Are you sure you want to delete this student?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Student Profile?',
+        message: 'This will permanently remove the student profile, unassign them from their section, and remove associated attendance records.',
+        confirmText: 'Delete Student',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteStudentProfile(id);
@@ -480,7 +486,13 @@ function showCreateTeacherModal() {
 }
 
 async function deleteTeacher(id) {
-    if (!confirm('Are you sure you want to delete this teacher?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Teacher Profile?',
+        message: 'This will remove the teacher from all active class assignments and grading categories.',
+        confirmText: 'Delete Teacher',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteTeacherProfile(id);
@@ -714,7 +726,13 @@ function showCreateParentModal() {
 }
 
 async function deleteParent(id) {
-    if (!confirm('Are you sure you want to delete this parent?')) return;
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Parent Profile?',
+        message: 'This will permanently remove this parent profile and all active guardian links.',
+        confirmText: 'Delete Parent',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
         await api.deleteParentProfile(id);
