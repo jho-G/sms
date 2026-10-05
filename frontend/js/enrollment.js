@@ -131,6 +131,8 @@ function renderStudentsTable(students) {
             </td>
         </tr>
     `).join('');
+
+    makeTableSortable(table.closest('table'));
 }
 
 function filterStudents(query) {
@@ -384,6 +386,8 @@ async function loadTeachersList() {
                 </td>
             </tr>
         `).join('');
+
+        makeTableSortable(table.closest('table'));
     } catch (error) {
         showToast(error.message || 'Failed to load teachers', 'error');
     }
@@ -622,6 +626,8 @@ async function loadParentsList() {
                 </td>
             </tr>
         `).join('');
+
+        makeTableSortable(table.closest('table'));
     } catch (error) {
         showToast(error.message || 'Failed to load parents', 'error');
     }

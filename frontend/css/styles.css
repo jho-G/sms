@@ -41,6 +41,37 @@
     background-color: #f9fafb;
 }
 
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+th.sortable:hover {
+    background-color: #f1f5f9;
+    color: #4f46e5;
+}
+
+.sort-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    opacity: 0.45;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+th.sortable:hover .sort-indicator {
+    opacity: 0.85;
+}
+
+th.sort-asc .sort-indicator,
+th.sort-desc .sort-indicator {
+    opacity: 1;
+    color: #4f46e5;
+}
+
 /* Custom focus styles for accessibility */
 input:focus,
 select:focus,

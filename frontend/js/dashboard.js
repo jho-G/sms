@@ -694,6 +694,96 @@ function initTableSearchFilter(inputId, tbodyId, countBadgeId = null) {
 }
 
 // ============================================================
+// Interactive Table Column Sorting System
+// ============================================================
+function makeTableSortable(tableIdOrElement) {
+    const table = typeof tableIdOrElement === 'string' 
+        ? document.getElementById(tableIdOrElement) 
+        : tableIdOrElement;
+    if (!table) return;
+
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    if (!thead || !tbody) return;
+
+    const headers = thead.querySelectorAll('th');
+    headers.forEach((th, colIdx) => {
+        const text = th.textContent.trim().toLowerCase();
+        // Skip action columns and inputs
+        if (text === 'actions' || text === '' || th.classList.contains('no-sort')) return;
+
+        th.classList.add('sortable');
+        if (!th.querySelector('.sort-indicator')) {
+            const indicator = document.createElement('span');
+            indicator.className = 'sort-indicator';
+            indicator.innerHTML = '⇅';
+            th.appendChild(indicator);
+        }
+
+        th.onclick = () => {
+            const currentDir = th.getAttribute('data-sort-dir');
+            const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+            // Reset other headers in this table
+            headers.forEach(otherTh => {
+                if (otherTh !== th) {
+                    otherTh.removeAttribute('data-sort-dir');
+                    otherTh.classList.remove('sort-asc', 'sort-desc');
+                    const ind = otherTh.querySelector('.sort-indicator');
+                    if (ind) ind.innerHTML = '⇅';
+                }
+            });
+
+            th.setAttribute('data-sort-dir', newDir);
+            th.classList.remove('sort-asc', 'sort-desc');
+            th.classList.add(newDir === 'asc' ? 'sort-asc' : 'sort-desc');
+            const ind = th.querySelector('.sort-indicator');
+            if (ind) ind.innerHTML = newDir === 'asc' ? '▲' : '▼';
+
+            sortTableByColumn(tbody, colIdx, newDir);
+        };
+    });
+}
+
+function sortTableByColumn(tbody, colIdx, direction) {
+    const rows = Array.from(tbody.querySelectorAll('tr:not(.table-no-results)'));
+    if (rows.length <= 1) return;
+
+    const sortableRows = rows.filter(r => !r.querySelector('td[colspan]'));
+    if (sortableRows.length <= 1) return;
+
+    sortableRows.sort((rowA, rowB) => {
+        const cellA = (rowA.children[colIdx]?.innerText || rowA.children[colIdx]?.textContent || '').trim();
+        const cellB = (rowB.children[colIdx]?.innerText || rowB.children[colIdx]?.textContent || '').trim();
+
+        // Check for numeric values
+        const cleanA = cellA.replace(/[^0-9.-]/g, '');
+        const cleanB = cellB.replace(/[^0-9.-]/g, '');
+        const numA = parseFloat(cleanA);
+        const numB = parseFloat(cleanB);
+        const isNumeric = cleanA !== '' && cleanB !== '' && !isNaN(numA) && !isNaN(numB);
+
+        let comparison = 0;
+        if (isNumeric) {
+            comparison = numA - numB;
+        } else {
+            // Check for valid date
+            const dateA = Date.parse(cellA);
+            const dateB = Date.parse(cellB);
+            if (!isNaN(dateA) && !isNaN(dateB) && isNaN(cellA) && isNaN(cellB)) {
+                comparison = dateA - dateB;
+            } else {
+                comparison = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+            }
+        }
+
+        return direction === 'asc' ? comparison : -comparison;
+    });
+
+    sortableRows.forEach(row => tbody.appendChild(row));
+}
+
+// ============================================================
 // Global Command Palette & Keyboard Shortcuts System
 // ============================================================
 let isCommandPaletteOpen = false;
