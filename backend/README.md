@@ -397,17 +397,17 @@ python manage.py seed_demo --flush  # wipe demo rows first
 python manage.py runserver
 ```
 
-### 8. Serve the Frontend
+### 8. Run the React Frontend
 
-The frontend is static and expects the API at `http://localhost:8000/api`.
-Serve it over HTTP rather than opening the files directly, so the origin
-matches the CORS allowlist:
+The frontend is built with React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, and Framer Motion, and connects to the API at `http://localhost:8000/api`.
 
 ```bash
-cd ../frontend && python -m http.server 8080
+cd ../frontend
+npm install
+npm run dev
 ```
 
-Then open <http://localhost:8080/>.
+Then open <http://localhost:5173/>.
 
 ## Running Tests
 
