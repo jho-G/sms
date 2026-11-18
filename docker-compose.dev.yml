@@ -1,0 +1,87 @@
+# ========================================================
+# Development Docker Compose Configuration
+# Features: Hot-reloading, Debugging, Live Code Mounting
+# ========================================================
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sms-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sms_db}
+      POSTGRES_USER: ${POSTGRES_USER:-sms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sms_secure_password}
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - sms-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user} -d ${POSTGRES_DB:-sms_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sms-backend-dev
+    restart: unless-stopped
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - ./backend:/app
+      - static_dev_volume:/app/staticfiles
+      - media_dev_volume:/app/media
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-django-dev-insecure-secret-key-12345}
+      DEBUG: "1"
+      ALLOWED_HOSTS: "*"
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000"
+      DB_ENGINE: postgresql
+      DB_NAME: ${POSTGRES_DB:-sms_db}
+      DB_USER: ${POSTGRES_USER:-sms_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-sms_secure_password}
+      DB_HOST: db
+      DB_PORT: 5432
+      SEED_DEMO: "1"
+    ports:
+      - "8000:8000"
+    networks:
+      - sms-dev-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: sms-frontend-dev
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    networks:
+      - sms-dev-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_dev_data:
+    name: sms_postgres_dev_data
+  static_dev_volume:
+    name: sms_static_dev_volume
+  media_dev_volume:
+    name: sms_media_dev_volume
+
+networks:
+  sms-dev-network:
+    name: sms_dev_network
+    driver: bridge
