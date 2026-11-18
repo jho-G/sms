@@ -24,7 +24,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY", default="")
 if not SECRET_KEY:
-    if DEBUG:
+    if DEBUG or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true":
         SECRET_KEY = "django-insecure-local-development-only-do-not-deploy"
     else:
         raise ImproperlyConfigured(
