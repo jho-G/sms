@@ -1,0 +1,78 @@
+services:
+  # ========================================================
+  # Database Service (PostgreSQL 16)
+  # ========================================================
+  db:
+    image: postgres:16-alpine
+    container_name: sms-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sms_db}
+      POSTGRES_USER: ${POSTGRES_USER:-sms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sms_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sms-network
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  # ========================================================
+  # Backend Service (Django + Gunicorn)
+  # ========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sms-backend
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-docker-sms-key-change-in-prod}
+      DEBUG: ${DEBUG:-0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost,http://127.0.0.1,http://frontend}
+      DB_ENGINE: postgresql
+      DB_NAME: ${POSTGRES_DB:-sms_db}
+      DB_USER: ${POSTGRES_USER:-sms_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-sms_secure_password}
+      DB_HOST: db
+      DB_PORT: 5432
+      SEED_DEMO: ${SEED_DEMO:-1}
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    networks:
+      - sms-network
+    depends_on:
+      - db
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+
+  # ========================================================
+  # Frontend Service (React + Vite + Nginx)
+  # ========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sms-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - sms-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    name: sms_postgres_data
+  static_volume:
+    name: sms_static_volume
+  media_volume:
+    name: sms_media_volume
+
+networks:
+  sms-network:
+    name: sms_network
+    driver: bridge
