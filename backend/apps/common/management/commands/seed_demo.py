@@ -112,6 +112,24 @@ class Command(BaseCommand):
                 user.save()
             users[role] = user
 
+        # Ensure superuser admin exists for Django admin
+        admin_user, admin_created = User.objects.get_or_create(
+            email="admin@sms.com",
+            defaults={
+                "username": "admin",
+                "first_name": "System",
+                "last_name": "Administrator",
+                "role": "DIRECTOR",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+        )
+        if admin_created:
+            admin_user.set_password("admin123")
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.save()
+
         for email, first, last, _student_id in EXTRA_STUDENTS:
             user, created = User.objects.get_or_create(
                 email=email,

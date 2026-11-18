@@ -177,11 +177,15 @@ The repository includes a comprehensive, 3-tier GitHub Actions workflow:
 
 ## 👥 Demo Credentials (when `SEED_DEMO=1`)
 
-| Role | Username | Password |
-|---|---|---|
-| **Admin** | `admin` | `admin123` |
-| **Teacher** | `teacher1` | `teacher123` |
-| **Student** | `student1` | `student123` |
+The login form uses **Email** and **Password** (or click any role card on the login screen for 1-click login):
+
+| Role | Email | Username | Password | Access Scope |
+|---|---|---|---|---|
+| **School Director (Admin)** | `director@sms.com` | `director` | `director123` | Full administrative control (Years, Sections, Subjects, Users) |
+| **Teacher** | `teacher@sms.com` | `teacher` | `teacher123` | Class assignments, Attendance recording, Grades & grading categories |
+| **Student** | `student@sms.com` | `student` | `student123` | Personal Attendance history, Report Card & GPA |
+| **Parent / Guardian** | `parent@sms.com` | `parent` | `parent123` | Child academic overview, attendance tracking, and report cards |
+| **Django Superuser** | `admin@sms.com` | `admin` | `admin123` | Access to native Django Admin at `/admin/` |
 
 ---
 
