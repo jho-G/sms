@@ -96,12 +96,26 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# Supports dynamic PostgreSQL configuration in Docker/production, falling back to SQLite.
+DB_ENGINE = config("DB_ENGINE", default="sqlite3")
+if DB_ENGINE.lower() in ("postgresql", "postgres", "django.db.backends.postgresql"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME", default="sms_db"),
+            "USER": config("DB_USER", default="sms_user"),
+            "PASSWORD": config("DB_PASSWORD", default="sms_password"),
+            "HOST": config("DB_HOST", default="localhost"),
+            "PORT": config("DB_PORT", default="5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Custom User Model
