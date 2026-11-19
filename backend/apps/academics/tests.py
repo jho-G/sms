@@ -8,6 +8,14 @@ from datetime import date
 from django.urls import reverse
 
 from academics.models import AcademicYear, GradeLevel, SubjectAssignment
+from common.factories import (
+    AcademicYearFactory,
+    ClassSectionFactory,
+    GradeLevelFactory,
+    SubjectAssignmentFactory,
+    SubjectFactory,
+    TeacherUserFactory,
+)
 from common.testing import SchoolTestCase
 
 
@@ -168,3 +176,25 @@ class AssignmentAccessTests(SchoolTestCase):
         response = self.client.get(reverse("academics:assignment-list"))
 
         self.assertEqual(response.status_code, 403)
+
+
+class AcademicsFactoryTests(SchoolTestCase):
+    """Test suite using Academic factories."""
+
+    def test_factory_creates_structured_curriculum(self):
+        year = AcademicYearFactory.create(name="2029-2030")
+        grade = GradeLevelFactory.create(name="Grade 12", level=12, academic_year=year)
+        section = ClassSectionFactory.create(name="Honors", grade_level=grade)
+        subject = SubjectFactory.create(name="Calculus BC", code="CALC-BC")
+        teacher = TeacherUserFactory.create()
+
+        assignment = SubjectAssignmentFactory.create(
+            academic_year=year,
+            section=section,
+            subject=subject,
+            teacher=teacher,
+        )
+
+        self.assertEqual(assignment.academic_year.name, "2029-2030")
+        self.assertEqual(assignment.section.name, "Honors")
+        self.assertEqual(assignment.subject.code, "CALC-BC")
