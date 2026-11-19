@@ -4,6 +4,6 @@ django-cors-headers==4.9.0
 python-decouple==3.8
 Pillow==12.3.0
 djangorestframework-simplejwt==5.4.0
-gunicorn==23.0.0
+gunicorn==27.0.1
 psycopg2-binary==2.9.10
 drf-spectacular>=0.28.0
