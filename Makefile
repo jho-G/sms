@@ -115,6 +115,10 @@ check: ## Run system checks, TypeScript verification, and docker validate
 	$(COMPOSE_PROD) config > /dev/null
 	@echo -e "$(GREEN)All pre-flight checks passed successfully!$(RESET)"
 
+##@ 🔒 Pre-Commit & Security
+pre-commit: ## Run all pre-commit hooks on all tracked files
+	pre-commit run --all-files || ./venv/bin/pre-commit run --all-files
+
 ##@ ℹ️ General
 help: ## Display this help dialog
 	@echo -e "$(BLUE)Student Management System - Developer Commands$(RESET)"

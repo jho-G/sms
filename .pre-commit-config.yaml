@@ -1,0 +1,44 @@
+# ==============================================================================
+# Pre-Commit Hook Configuration
+# Runs static analysis, security scans, and formatting before each commit.
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+# ==============================================================================
+default_language_version:
+  python: python3.12
+
+repos:
+  # Standard Git Hygiene Hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^frontend/dist/
+      - id: end-of-file-fixer
+        exclude: ^frontend/dist/
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1024']
+
+  # Backend: Blazing Fast Python Linter & Formatter (Ruff)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Security: Block Accidental Secret & Credential Commits
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  # Frontend: Prettier Formatting Check
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: ^frontend/src/.*\.(ts|tsx|css|json)$
