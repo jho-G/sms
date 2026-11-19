@@ -5,6 +5,7 @@ Tests for authentication, registration and privilege boundaries.
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from common.factories import DirectorFactory, StudentUserFactory, UserFactory
 from common.testing import SchoolTestCase
 
 User = get_user_model()
@@ -199,3 +200,23 @@ class ProfileUpdateTests(SchoolTestCase):
         self.assertEqual(response.status_code, 200)
         self.student_user.refresh_from_db()
         self.assertEqual(self.student_user.first_name, "Samantha")
+
+
+class FactoryAuthenticationTests(SchoolTestCase):
+    """Test suite utilizing Factory Boy fixtures."""
+
+    def test_factory_created_user_can_login(self):
+        user = StudentUserFactory.create(password="CustomSecret123!")
+        response = self.client.post(
+            "/api/auth/login/",
+            {"email": user.email, "password": "CustomSecret123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["success"])
+        self.assertIn("tokens", response.data["data"])
+
+    def test_director_factory_creates_staff_user(self):
+        director = DirectorFactory.create()
+        self.assertTrue(director.is_staff)
+        self.assertEqual(director.role, "DIRECTOR")
