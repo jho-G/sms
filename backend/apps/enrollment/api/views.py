@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -69,6 +70,10 @@ def _visible_student_profiles(user):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema(
+    tags=["Enrollment"],
+    summary="Resolve caller's own domain profile (Student, Teacher, Parent)",
+)
 class MyProfileView(APIView):
     """
     GET /api/enrollment/me/ – Resolve the caller's own domain profile.

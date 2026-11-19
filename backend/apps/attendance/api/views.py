@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -102,6 +103,12 @@ class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema(
+    tags=["Attendance"],
+    summary="Record or update single student attendance",
+    request=AttendanceCreateSerializer,
+    responses={200: AttendanceSerializer},
+)
 class AttendanceRecordView(APIView):
     """
     POST /api/attendance/record/
@@ -161,6 +168,12 @@ class AttendanceRecordView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema(
+    tags=["Attendance"],
+    summary="Submit bulk attendance records for a class",
+    request=BulkAttendanceSubmitSerializer,
+    responses={200: AttendanceSerializer(many=True)},
+)
 class BulkAttendanceSubmitView(APIView):
     """
     POST /api/attendance/bulk-submit/
@@ -226,6 +239,11 @@ class BulkAttendanceSubmitView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema(
+    tags=["Attendance"],
+    summary="Get attendance roll for subject assignment on a specific date",
+    responses={200: AttendanceSerializer(many=True)},
+)
 class SubjectDateAttendanceView(APIView):
     """
     GET /api/attendance/subject/<uuid>/date/<date>/
@@ -266,6 +284,10 @@ class SubjectDateAttendanceView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema(
+    tags=["Attendance"],
+    summary="Get student absence count and history",
+)
 class StudentAbsenceSummaryView(APIView):
     """
     GET /api/attendance/student/<uuid>/absences/

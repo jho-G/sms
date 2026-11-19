@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from grading.models import AssessmentCategory, Grade
@@ -48,6 +49,7 @@ class AssessmentCategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.IntegerField())
     def get_graded_count(self, obj):
         """Number of students who have grades in this category."""
         return obj.grades.count()
@@ -115,9 +117,11 @@ class GradeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.FloatField())
     def get_percentage(self, obj):
         return float(obj.percentage)
 
+    @extend_schema_field(serializers.FloatField())
     def get_weighted_score(self, obj):
         return float(obj.weighted_score)
 
