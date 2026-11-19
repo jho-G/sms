@@ -15,6 +15,11 @@ from authentication.api.serializers import (
     UserSerializer,
 )
 from authentication.services import change_password
+from common.throttling import (
+    AuthBurstRateThrottle,
+    AuthSustainedRateThrottle,
+    PasswordResetRateThrottle,
+)
 
 User = get_user_model()
 
@@ -37,6 +42,7 @@ class RegisterView(generics.CreateAPIView):
 
     serializer_class = UserCreateSerializer
     permission_classes = [AllowAny]
+    throttle_classes = [AuthBurstRateThrottle, AuthSustainedRateThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -98,6 +104,7 @@ class LoginView(APIView):
 
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
+    throttle_classes = [AuthBurstRateThrottle, AuthSustainedRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -259,6 +266,7 @@ class ChangePasswordView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ChangePasswordSerializer
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
