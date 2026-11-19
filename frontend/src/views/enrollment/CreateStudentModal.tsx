@@ -117,9 +117,7 @@ export function CreateStudentModal({
                 required
                 placeholder="Sarah"
                 value={formData.first_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, first_name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
@@ -128,9 +126,7 @@ export function CreateStudentModal({
                 required
                 placeholder="Connor"
                 value={formData.last_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, last_name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
               />
             </div>
           </div>
@@ -142,9 +138,7 @@ export function CreateStudentModal({
                 required
                 placeholder="sconnor"
                 value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
@@ -154,9 +148,7 @@ export function CreateStudentModal({
                 required
                 placeholder="sconnor@school.com"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
           </div>
@@ -168,18 +160,14 @@ export function CreateStudentModal({
                 required
                 placeholder="e.g. STU-1001"
                 value={formData.student_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, student_id: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
               <Label required>Class Section</Label>
               <Select
                 value={formData.section_id}
-                onValueChange={(val) =>
-                  setFormData({ ...formData, section_id: val })
-                }
+                onValueChange={(val) => setFormData({ ...formData, section_id: val })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Assign section" />

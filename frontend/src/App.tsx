@@ -42,7 +42,10 @@ function MainApp() {
   const [isCreateStudentOpen, setIsCreateStudentOpen] = useState(false);
 
   // Selected child for parent view
-  const [parentTargetChild, setParentTargetChild] = useState<{ id: string; name: string } | null>(null);
+  const [parentTargetChild, setParentTargetChild] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   if (isLoading) {
     return (
@@ -160,9 +163,7 @@ function MainApp() {
       case "my-grades":
         return <ReportCardView />;
       case "child-grades":
-        return (
-          <ReportCardView customStudentId={parentTargetChild?.id} />
-        );
+        return <ReportCardView customStudentId={parentTargetChild?.id} />;
 
       // Teacher
       case "my-assignments":
@@ -188,13 +189,9 @@ function MainApp() {
     <DashboardLayout
       activeTab={activeTab}
       setActiveTab={setActiveTab}
-      sidebarContent={
-        <SidebarNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      }
+      sidebarContent={<SidebarNav activeTab={activeTab} setActiveTab={setActiveTab} />}
     >
-      <PageTransition key={activeTab}>
-        {renderActiveView()}
-      </PageTransition>
+      <PageTransition key={activeTab}>{renderActiveView()}</PageTransition>
 
       <StudentDetailModal
         student={viewingStudent}

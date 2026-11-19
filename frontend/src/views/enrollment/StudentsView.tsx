@@ -5,7 +5,13 @@ import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -76,7 +82,15 @@ export function StudentsView({ onSelectStudent, onOpenCreate }: StudentsViewProp
       return;
     }
 
-    const headers = ["Student ID", "First Name", "Last Name", "Email", "Section", "DOB", "Enrollment Date"];
+    const headers = [
+      "Student ID",
+      "First Name",
+      "Last Name",
+      "Email",
+      "Section",
+      "DOB",
+      "Enrollment Date",
+    ];
     const rows = filteredStudents.map((s) => [
       `"${s.student_id}"`,
       `"${s.user_details?.first_name || ""}"`,
@@ -87,11 +101,16 @@ export function StudentsView({ onSelectStudent, onOpenCreate }: StudentsViewProp
       `"${s.enrollment_date || ""}"`,
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `students_roster_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `students_roster_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -190,13 +209,19 @@ export function StudentsView({ onSelectStudent, onOpenCreate }: StudentsViewProp
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading student roster...
                   </TableCell>
                 </TableRow>
               ) : filteredStudents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No students matching your search criteria.
                   </TableCell>
                 </TableRow>
@@ -228,7 +253,9 @@ export function StudentsView({ onSelectStudent, onOpenCreate }: StudentsViewProp
                     </TableCell>
                     <TableCell>
                       {s.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}

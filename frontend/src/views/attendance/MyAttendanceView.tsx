@@ -4,7 +4,13 @@ import type { AttendanceRecord, AbsenceSummary } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -64,7 +70,8 @@ export function MyAttendanceView({
   const absentLogs = records.filter((r) => r.status === "ABSENT").length;
   const excusedLogs = records.filter((r) => r.status === "EXCUSED").length;
 
-  const attendanceRate = totalLogs > 0 ? Math.round(((presentLogs + lateLogs) / totalLogs) * 100) : 100;
+  const attendanceRate =
+    totalLogs > 0 ? Math.round(((presentLogs + lateLogs) / totalLogs) * 100) : 100;
 
   return (
     <div className="space-y-6">
@@ -73,7 +80,8 @@ export function MyAttendanceView({
           Attendance Record {studentName && `— ${studentName}`}
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Comprehensive daily log of class attendance, excused status, and absence breakdown
+          Comprehensive daily log of class attendance, excused status, and absence
+          breakdown
         </p>
       </div>
 
@@ -92,7 +100,9 @@ export function MyAttendanceView({
             <div className="text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
               {attendanceRate}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Based on {totalLogs} logged class sessions</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Based on {totalLogs} logged class sessions
+            </p>
           </CardContent>
         </Card>
 
@@ -109,7 +119,9 @@ export function MyAttendanceView({
             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
               {presentLogs}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">On-time classroom attendance</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              On-time classroom attendance
+            </p>
           </CardContent>
         </Card>
 
@@ -126,7 +138,9 @@ export function MyAttendanceView({
             <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
               {lateLogs}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Recorded with arrival delay</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Recorded with arrival delay
+            </p>
           </CardContent>
         </Card>
 
@@ -143,7 +157,9 @@ export function MyAttendanceView({
             <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
               {absenceSummary?.total_absences ?? absentLogs}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{excusedLogs} excused absences</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {excusedLogs} excused absences
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -172,13 +188,19 @@ export function MyAttendanceView({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading attendance history...
                   </TableCell>
                 </TableRow>
               ) : records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No attendance records logged yet for this academic period.
                   </TableCell>
                 </TableRow>

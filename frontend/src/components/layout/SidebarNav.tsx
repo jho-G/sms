@@ -96,7 +96,12 @@ export function SidebarNav({ activeTab, setActiveTab }: SidebarNavProps) {
               )}
             >
               <div className="flex items-center gap-3">
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-muted-foreground")} />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    isActive ? "text-white" : "text-muted-foreground"
+                  )}
+                />
                 <span>{item.label}</span>
               </div>
               {item.badge && (

@@ -5,11 +5,21 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Users, Clock, Award, ChevronRight, User } from "lucide-react";
 
 interface ChildrenViewProps {
-  onSelectChild: (studentId: string, studentName: string, destination: "attendance" | "grades") => void;
+  onSelectChild: (
+    studentId: string,
+    studentName: string,
+    destination: "attendance" | "grades"
+  ) => void;
 }
 
 export function ChildrenView({ onSelectChild }: ChildrenViewProps) {
@@ -44,7 +54,8 @@ export function ChildrenView({ onSelectChild }: ChildrenViewProps) {
           My Children
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Select a child to monitor class attendance rates and review semester report cards
+          Select a child to monitor class attendance rates and review semester report
+          cards
         </p>
       </div>
 
@@ -60,7 +71,8 @@ export function ChildrenView({ onSelectChild }: ChildrenViewProps) {
             <Users className="h-8 w-8 text-muted-foreground/60 mb-2" />
             <p className="text-sm font-semibold">No children profiles linked yet.</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-              Please contact the school director or administrative office to connect your parent account with your student's institutional record.
+              Please contact the school director or administrative office to connect your
+              parent account with your student's institutional record.
             </p>
           </CardContent>
         </Card>
@@ -70,7 +82,10 @@ export function ChildrenView({ onSelectChild }: ChildrenViewProps) {
             const studentId = typeof g.student === "string" ? g.student : g.student.id;
             const studentName = g.student_name || "Child";
             return (
-              <Card key={g.id} className="hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+              <Card
+                key={g.id}
+                className="hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">

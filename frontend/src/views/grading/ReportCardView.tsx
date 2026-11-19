@@ -5,7 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -176,8 +182,12 @@ export function ReportCardView({ customStudentId }: ReportCardViewProps) {
         <Card>
           <CardContent className="h-48 flex flex-col items-center justify-center text-muted-foreground">
             <Award className="h-10 w-10 text-gray-300 dark:text-gray-700 mb-2" />
-            <p className="text-sm font-medium">No report card data found for this period.</p>
-            <p className="text-xs text-muted-foreground mt-1">Ensure marks are entered and category weights total up properly.</p>
+            <p className="text-sm font-medium">
+              No report card data found for this period.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Ensure marks are entered and category weights total up properly.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -197,12 +207,8 @@ export function ReportCardView({ customStudentId }: ReportCardViewProps) {
                     <Badge variant="purple" className="font-mono text-xs">
                       {reportCard.student_id_number}
                     </Badge>
-                    <Badge variant="secondary">
-                      Section {reportCard.section_name}
-                    </Badge>
-                    <Badge variant="outline">
-                      {reportCard.academic_year_name}
-                    </Badge>
+                    <Badge variant="secondary">Section {reportCard.section_name}</Badge>
+                    <Badge variant="outline">{reportCard.academic_year_name}</Badge>
                   </div>
                 </div>
               </div>
@@ -213,7 +219,9 @@ export function ReportCardView({ customStudentId }: ReportCardViewProps) {
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Cumulative GPA
                   </span>
-                  <div className={`text-4xl font-extrabold tracking-tight ${getGpaColor(reportCard.gpa)}`}>
+                  <div
+                    className={`text-4xl font-extrabold tracking-tight ${getGpaColor(reportCard.gpa)}`}
+                  >
                     {reportCard.gpa.toFixed(2)}
                   </div>
                   <span className="text-xs text-muted-foreground">4.0 Scale</span>
@@ -226,7 +234,9 @@ export function ReportCardView({ customStudentId }: ReportCardViewProps) {
                   <div className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
                     {reportCard.letter_grade}
                   </div>
-                  <span className="text-xs text-muted-foreground">{reportCard.overall_percentage.toFixed(1)}%</span>
+                  <span className="text-xs text-muted-foreground">
+                    {reportCard.overall_percentage.toFixed(1)}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -281,10 +291,10 @@ export function ReportCardView({ customStudentId }: ReportCardViewProps) {
                             subj.letter_grade === "A"
                               ? "success"
                               : subj.letter_grade === "B"
-                              ? "purple"
-                              : subj.letter_grade === "C"
-                              ? "warning"
-                              : "destructive"
+                                ? "purple"
+                                : subj.letter_grade === "C"
+                                  ? "warning"
+                                  : "destructive"
                           }
                           className="font-bold"
                         >

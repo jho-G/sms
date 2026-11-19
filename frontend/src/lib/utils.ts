@@ -15,11 +15,13 @@ export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return "—";
   try {
     const d = new Date(dateString);
-    return isNaN(d.getTime()) ? dateString : d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return isNaN(d.getTime())
+      ? dateString
+      : d.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
   } catch {
     return dateString;
   }

@@ -93,14 +93,24 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               )}
             >
               <div className="mt-0.5 shrink-0">
-                {t.type === "success" && <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
-                {t.type === "error" && <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />}
-                {t.type === "warning" && <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />}
-                {t.type === "info" && <Info className="h-5 w-5 text-sky-600 dark:text-sky-400" />}
+                {t.type === "success" && (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                )}
+                {t.type === "error" && (
+                  <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                )}
+                {t.type === "warning" && (
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                )}
+                {t.type === "info" && (
+                  <Info className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+                )}
               </div>
               <div className="flex-1 text-sm">
                 {t.title && <p className="font-semibold leading-tight">{t.title}</p>}
-                <p className={cn("text-xs mt-0.5", t.title ? "opacity-90" : "font-medium")}>
+                <p
+                  className={cn("text-xs mt-0.5", t.title ? "opacity-90" : "font-medium")}
+                >
                   {t.description}
                 </p>
               </div>

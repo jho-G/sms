@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -133,7 +139,8 @@ export function ParentsView() {
             Parents & Legal Guardians
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Registered family contacts, residential addresses, and emergency phone channels
+            Registered family contacts, residential addresses, and emergency phone
+            channels
           </p>
         </div>
         <Button onClick={handleOpenCreate} className="gap-2">
@@ -180,13 +187,19 @@ export function ParentsView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading parents...
                   </TableCell>
                 </TableRow>
               ) : filteredParents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No parent records found.
                   </TableCell>
                 </TableRow>
@@ -208,7 +221,9 @@ export function ParentsView() {
                     </TableCell>
                     <TableCell>
                       {p.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
@@ -235,7 +250,9 @@ export function ParentsView() {
                   required
                   placeholder="Robert"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -244,7 +261,9 @@ export function ParentsView() {
                   required
                   placeholder="Taylor"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -277,7 +296,9 @@ export function ParentsView() {
                 <Input
                   placeholder="e.g. Architect"
                   value={formData.occupation}
-                  onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, occupation: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -285,7 +306,9 @@ export function ParentsView() {
                 <Input
                   placeholder="+1 (555) 234-5678"
                   value={formData.secondary_phone}
-                  onChange={(e) => setFormData({ ...formData, secondary_phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, secondary_phone: e.target.value })
+                  }
                 />
               </div>
             </div>

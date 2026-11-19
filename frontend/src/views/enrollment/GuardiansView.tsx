@@ -5,7 +5,13 @@ import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -139,7 +145,8 @@ export function GuardiansView() {
             Active Guardian Relationships
           </CardTitle>
           <CardDescription>
-            Enables parent accounts to access their child's grade reports and attendance logs.
+            Enables parent accounts to access their child's grade reports and attendance
+            logs.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -156,13 +163,19 @@ export function GuardiansView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={5}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading guardian links...
                   </TableCell>
                 </TableRow>
               ) : links.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={5}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No guardian connections created yet. Click "Link Guardian to Student".
                   </TableCell>
                 </TableRow>
@@ -181,8 +194,12 @@ export function GuardiansView() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <span className="font-medium">{link.parent_name || "Parent"}</span>
-                        <p className="text-xs text-muted-foreground">{link.parent_email}</p>
+                        <span className="font-medium">
+                          {link.parent_name || "Parent"}
+                        </span>
+                        <p className="text-xs text-muted-foreground">
+                          {link.parent_email}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -190,7 +207,9 @@ export function GuardiansView() {
                     </TableCell>
                     <TableCell>
                       {link.is_primary ? (
-                        <Badge variant="success" dot>Primary Guardian</Badge>
+                        <Badge variant="success" dot>
+                          Primary Guardian
+                        </Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground">Secondary</span>
                       )}
@@ -287,7 +306,10 @@ export function GuardiansView() {
                 onChange={(e) => setIsPrimary(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <Label htmlFor="is-primary-checkbox" className="cursor-pointer text-sm font-normal">
+              <Label
+                htmlFor="is-primary-checkbox"
+                className="cursor-pointer text-sm font-normal"
+              >
                 Set as Primary Guardian (receives primary emergency notices)
               </Label>
             </div>

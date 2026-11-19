@@ -49,7 +49,7 @@ export function DemoAccountsCard() {
     },
   ];
 
-  const handleQuickLogin = async (acc: typeof demoAccounts[0]) => {
+  const handleQuickLogin = async (acc: (typeof demoAccounts)[0]) => {
     setLoadingRole(acc.role);
     const res = await login({ email: acc.email, password: acc.password });
     setLoadingRole(null);

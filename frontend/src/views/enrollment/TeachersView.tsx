@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -141,7 +147,8 @@ export function TeachersView() {
             Teaching Faculty
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Faculty directory, employee identifiers, academic departments, and qualifications
+            Faculty directory, employee identifiers, academic departments, and
+            qualifications
           </p>
         </div>
         <Button onClick={handleOpenCreate} className="gap-2">
@@ -189,13 +196,19 @@ export function TeachersView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading faculty members...
                   </TableCell>
                 </TableRow>
               ) : filteredTeachers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No faculty records found.
                   </TableCell>
                 </TableRow>
@@ -221,11 +234,17 @@ export function TeachersView() {
                       <Badge variant="secondary">{t.department}</Badge>
                     </TableCell>
                     <TableCell className="text-xs">{t.specialization || "—"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{t.qualification || "—"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{formatDate(t.hire_date)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {t.qualification || "—"}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDate(t.hire_date)}
+                    </TableCell>
                     <TableCell>
                       {t.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
@@ -252,7 +271,9 @@ export function TeachersView() {
                   required
                   placeholder="Albert"
                   value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -261,7 +282,9 @@ export function TeachersView() {
                   required
                   placeholder="Einstein"
                   value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -295,7 +318,9 @@ export function TeachersView() {
                   required
                   placeholder="EMP-101"
                   value={formData.employee_id}
-                  onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, employee_id: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -304,7 +329,9 @@ export function TeachersView() {
                   required
                   placeholder="e.g. Science"
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, department: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -315,7 +342,9 @@ export function TeachersView() {
                 <Input
                   placeholder="e.g. Theoretical Physics"
                   value={formData.specialization}
-                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specialization: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-1.5">
@@ -323,7 +352,9 @@ export function TeachersView() {
                 <Input
                   placeholder="e.g. Ph.D. Physics"
                   value={formData.qualification}
-                  onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, qualification: e.target.value })
+                  }
                 />
               </div>
             </div>

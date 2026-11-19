@@ -19,8 +19,7 @@ import type {
   ReportCard,
 } from "@/types";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 class APIClient {
   private baseURL: string;
@@ -68,10 +67,7 @@ class APIClient {
   }
 
   // Request core with automatic token refresh
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
     const headers: Record<string, string> = {
@@ -153,13 +149,13 @@ class APIClient {
 
   // ---------------- AUTH ----------------
   async login(credentials: { email: string; password: string }) {
-    const res = await this.request<{ user: User; tokens: { access: string; refresh: string } }>(
-      "/auth/login/",
-      {
-        method: "POST",
-        body: JSON.stringify(credentials),
-      }
-    );
+    const res = await this.request<{
+      user: User;
+      tokens: { access: string; refresh: string };
+    }>("/auth/login/", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
 
     if (res.success && res.data) {
       this.setTokens(res.data.tokens);
@@ -169,13 +165,13 @@ class APIClient {
   }
 
   async register(payload: any) {
-    const res = await this.request<{ user: User; tokens?: { access: string; refresh: string } }>(
-      "/auth/register/",
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
+    const res = await this.request<{
+      user: User;
+      tokens?: { access: string; refresh: string };
+    }>("/auth/register/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
     if (res.success && res.data?.tokens) {
       this.setTokens(res.data.tokens);
@@ -210,7 +206,11 @@ class APIClient {
     });
   }
 
-  async changePassword(data: { old_password: string; new_password: string; new_password_confirm: string }) {
+  async changePassword(data: {
+    old_password: string;
+    new_password: string;
+    new_password_confirm: string;
+  }) {
     return this.request("/auth/change-password/", {
       method: "POST",
       body: JSON.stringify(data),
@@ -219,7 +219,9 @@ class APIClient {
 
   // ---------------- ACADEMICS ----------------
   async getAcademicYears() {
-    return this.request<PaginatedData<AcademicYear> | AcademicYear[]>("/academics/years/");
+    return this.request<PaginatedData<AcademicYear> | AcademicYear[]>(
+      "/academics/years/"
+    );
   }
 
   async getActiveAcademicYear() {
@@ -248,7 +250,9 @@ class APIClient {
 
   async getGradeLevels(yearId?: string) {
     const query = yearId ? `?academic_year=${yearId}` : "";
-    return this.request<PaginatedData<GradeLevel> | GradeLevel[]>(`/academics/grades/${query}`);
+    return this.request<PaginatedData<GradeLevel> | GradeLevel[]>(
+      `/academics/grades/${query}`
+    );
   }
 
   async createGradeLevel(data: Partial<GradeLevel>) {
@@ -273,7 +277,9 @@ class APIClient {
 
   async getSections(gradeId?: string) {
     const query = gradeId ? `?grade_level=${gradeId}` : "";
-    return this.request<PaginatedData<ClassSection> | ClassSection[]>(`/academics/sections/${query}`);
+    return this.request<PaginatedData<ClassSection> | ClassSection[]>(
+      `/academics/sections/${query}`
+    );
   }
 
   async createSection(data: Partial<ClassSection>) {
@@ -324,7 +330,9 @@ class APIClient {
     let query = "";
     if (params?.teacher) query = `?teacher=${params.teacher}`;
     else if (params?.section) query = `?section=${params.section}`;
-    return this.request<PaginatedData<SubjectAssignment> | SubjectAssignment[]>(`/academics/assignments/${query}`);
+    return this.request<PaginatedData<SubjectAssignment> | SubjectAssignment[]>(
+      `/academics/assignments/${query}`
+    );
   }
 
   async createSubjectAssignment(data: Partial<SubjectAssignment>) {
@@ -342,12 +350,16 @@ class APIClient {
 
   // ---------------- ENROLLMENT ----------------
   async getMyProfile() {
-    return this.request<{ role: string; profile_id: string; profile: any }>("/enrollment/me/");
+    return this.request<{ role: string; profile_id: string; profile: any }>(
+      "/enrollment/me/"
+    );
   }
 
   async getStudents(sectionId?: string) {
     const query = sectionId ? `?section=${sectionId}` : "";
-    return this.request<PaginatedData<StudentProfile> | StudentProfile[]>(`/enrollment/students/${query}`);
+    return this.request<PaginatedData<StudentProfile> | StudentProfile[]>(
+      `/enrollment/students/${query}`
+    );
   }
 
   async getStudentDetail(id: string) {
@@ -375,7 +387,9 @@ class APIClient {
   }
 
   async getTeachers() {
-    return this.request<PaginatedData<TeacherProfile> | TeacherProfile[]>("/enrollment/teachers/");
+    return this.request<PaginatedData<TeacherProfile> | TeacherProfile[]>(
+      "/enrollment/teachers/"
+    );
   }
 
   async createTeacherProfile(data: any) {
@@ -386,7 +400,9 @@ class APIClient {
   }
 
   async getParents() {
-    return this.request<PaginatedData<ParentProfile> | ParentProfile[]>("/enrollment/parents/");
+    return this.request<PaginatedData<ParentProfile> | ParentProfile[]>(
+      "/enrollment/parents/"
+    );
   }
 
   async createParentProfile(data: any) {
@@ -397,7 +413,9 @@ class APIClient {
   }
 
   async getGuardians() {
-    return this.request<PaginatedData<StudentGuardian> | StudentGuardian[]>("/enrollment/guardians/");
+    return this.request<PaginatedData<StudentGuardian> | StudentGuardian[]>(
+      "/enrollment/guardians/"
+    );
   }
 
   async getStudentGuardians(studentId: string) {
@@ -408,7 +426,12 @@ class APIClient {
     return this.request<StudentGuardian[]>(`/enrollment/guardians/parent/${parentId}/`);
   }
 
-  async linkParentStudent(data: { parent_id: string; student_id: string; relationship: string; is_primary?: boolean }) {
+  async linkParentStudent(data: {
+    parent_id: string;
+    student_id: string;
+    relationship: string;
+    is_primary?: boolean;
+  }) {
     return this.request<StudentGuardian>("/enrollment/guardians/", {
       method: "POST",
       body: JSON.stringify(data),
@@ -422,13 +445,19 @@ class APIClient {
   }
 
   // ---------------- ATTENDANCE ----------------
-  async getAttendanceRecords(params?: { student?: string; assignment?: string; date?: string }) {
+  async getAttendanceRecords(params?: {
+    student?: string;
+    assignment?: string;
+    date?: string;
+  }) {
     const q = new URLSearchParams();
     if (params?.student) q.append("student", params.student);
     if (params?.assignment) q.append("subject_assignment", params.assignment);
     if (params?.date) q.append("date", params.date);
     const query = q.toString() ? `?${q.toString()}` : "";
-    return this.request<PaginatedData<AttendanceRecord> | AttendanceRecord[]>(`/attendance/${query}`);
+    return this.request<PaginatedData<AttendanceRecord> | AttendanceRecord[]>(
+      `/attendance/${query}`
+    );
   }
 
   async bulkSubmitAttendance(payload: {
@@ -449,7 +478,9 @@ class APIClient {
   // ---------------- GRADING ----------------
   async getAssessmentCategories(assignmentId?: string) {
     const query = assignmentId ? `?subject_assignment=${assignmentId}` : "";
-    return this.request<PaginatedData<AssessmentCategory> | AssessmentCategory[]>(`/grading/categories/${query}`);
+    return this.request<PaginatedData<AssessmentCategory> | AssessmentCategory[]>(
+      `/grading/categories/${query}`
+    );
   }
 
   async createAssessmentCategory(data: Partial<AssessmentCategory>) {
@@ -478,7 +509,9 @@ class APIClient {
   }
 
   async getSubjectTotal(studentId: string, subjectId: string) {
-    return this.request<SubjectTotal>(`/grading/subject-total/${studentId}/${subjectId}/`);
+    return this.request<SubjectTotal>(
+      `/grading/subject-total/${studentId}/${subjectId}/`
+    );
   }
 
   async getReportCard(studentId: string, yearId: string) {
