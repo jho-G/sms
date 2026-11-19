@@ -74,6 +74,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run ESLint linting verification
+        run: npm run lint
+
+      - name: Run Vitest unit & component test suite
+        run: npm test
+
       - name: Build production bundle (tsc & vite build)
         run: npm run build
 
