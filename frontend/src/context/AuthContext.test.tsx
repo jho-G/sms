@@ -119,7 +119,7 @@ describe("AuthContext", () => {
     vi.mocked(api.getMe).mockResolvedValue({ success: true, data: mockUser });
     vi.mocked(api.getMyProfile).mockResolvedValue({
       success: true,
-      data: { profile_id: "p-teacher-1" },
+      data: { profile_id: "p-teacher-1", role: "TEACHER", profile: {} },
     });
 
     render(
@@ -139,7 +139,7 @@ describe("AuthContext", () => {
 
   it("handles logout and clears user state", async () => {
     const user = userEvent.setup();
-    vi.mocked(api.logout).mockResolvedValue({ success: true });
+    vi.mocked(api.logout).mockResolvedValue(undefined);
 
     render(
       <AuthProvider>
