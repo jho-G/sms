@@ -9,9 +9,9 @@ from enrollment.api.views import (
     StudentGuardianDetailView,
     StudentGuardianListCreateView,
     StudentGuardiansView,
-    StudentProfilesBySectionView,
     StudentProfileDetailView,
     StudentProfileListCreateView,
+    StudentProfilesBySectionView,
     TeacherProfileDetailView,
     TeacherProfileListCreateView,
 )

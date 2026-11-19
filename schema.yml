@@ -1,0 +1,5018 @@
+openapi: 3.0.3
+info:
+  title: Student Management System (SMS) API
+  version: 1.0.0
+  description: Production-grade Modular Monolith REST API for Academic Management,
+    Enrollment, Attendance Tracking, and Grading.
+paths:
+  /api/academics/assignments/:
+    get:
+      operationId: academics_assignments_list
+      description: |-
+        GET /api/academics/assignments/
+        POST /api/academics/assignments/
+        List subject assignments (Director: all, Teacher: own) or create one
+        (Director only).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubjectAssignmentList'
+          description: ''
+    post:
+      operationId: academics_assignments_create
+      description: |-
+        GET /api/academics/assignments/
+        POST /api/academics/assignments/
+        List subject assignments (Director: all, Teacher: own) or create one
+        (Director only).
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectAssignmentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubjectAssignmentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubjectAssignmentCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectAssignmentCreate'
+          description: ''
+  /api/academics/assignments/{id}/:
+    get:
+      operationId: academics_assignments_retrieve
+      description: |-
+        GET/DELETE /api/academics/assignments/<uuid>/
+        Retrieve (Director, or the assigned teacher) or deactivate (Director).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectAssignment'
+          description: ''
+    delete:
+      operationId: academics_assignments_destroy
+      description: |-
+        GET/DELETE /api/academics/assignments/<uuid>/
+        Retrieve (Director, or the assigned teacher) or deactivate (Director).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/academics/assignments/section/{section_id}/:
+    get:
+      operationId: academics_assignments_section_list
+      description: |-
+        GET /api/academics/assignments/section/<uuid>/
+        Get all assignments for a section (Director: all, Teacher: own only).
+      summary: Get all assignments for a class section
+      parameters:
+      - in: path
+        name: section_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectAssignment'
+          description: ''
+  /api/academics/assignments/teacher/{teacher_id}/:
+    get:
+      operationId: academics_assignments_teacher_list
+      description: |-
+        GET /api/academics/assignments/teacher/<uuid>/
+        Get all assignments for a teacher (Director: any, Teacher: own only).
+      summary: Get all assignments for a teacher
+      parameters:
+      - in: query
+        name: academic_year_id
+        schema:
+          type: string
+        description: Optional Academic Year UUID filter
+      - in: path
+        name: teacher_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectAssignment'
+          description: ''
+  /api/academics/grades/:
+    get:
+      operationId: academics_grades_list
+      description: |-
+        GET /api/academics/grades/
+        POST /api/academics/grades/
+        List all grade levels or create a new one (Director only).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGradeLevelList'
+          description: ''
+    post:
+      operationId: academics_grades_create
+      description: |-
+        GET /api/academics/grades/
+        POST /api/academics/grades/
+        List all grade levels or create a new one (Director only).
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeLevelCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GradeLevelCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GradeLevelCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeLevelCreate'
+          description: ''
+  /api/academics/grades/{id}/:
+    get:
+      operationId: academics_grades_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/grades/<uuid>/
+        Retrieve, update, or delete a grade level (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeLevel'
+          description: ''
+    put:
+      operationId: academics_grades_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/grades/<uuid>/
+        Retrieve, update, or delete a grade level (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeLevelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GradeLevelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GradeLevelRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeLevel'
+          description: ''
+    patch:
+      operationId: academics_grades_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/grades/<uuid>/
+        Retrieve, update, or delete a grade level (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeLevelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeLevelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeLevelRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeLevel'
+          description: ''
+    delete:
+      operationId: academics_grades_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/grades/<uuid>/
+        Retrieve, update, or delete a grade level (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/academics/sections/:
+    get:
+      operationId: academics_sections_list
+      description: |-
+        GET /api/academics/sections/
+        POST /api/academics/sections/
+        List all class sections or create a new one (Director only).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedClassSectionList'
+          description: ''
+    post:
+      operationId: academics_sections_create
+      description: |-
+        GET /api/academics/sections/
+        POST /api/academics/sections/
+        List all class sections or create a new one (Director only).
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassSectionCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClassSectionCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClassSectionCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassSectionCreate'
+          description: ''
+  /api/academics/sections/{id}/:
+    get:
+      operationId: academics_sections_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/sections/<uuid>/
+        Retrieve, update, or delete a class section (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassSection'
+          description: ''
+    put:
+      operationId: academics_sections_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/sections/<uuid>/
+        Retrieve, update, or delete a class section (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassSectionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClassSectionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClassSectionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassSection'
+          description: ''
+    patch:
+      operationId: academics_sections_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/sections/<uuid>/
+        Retrieve, update, or delete a class section (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedClassSectionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedClassSectionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedClassSectionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassSection'
+          description: ''
+    delete:
+      operationId: academics_sections_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/sections/<uuid>/
+        Retrieve, update, or delete a class section (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/academics/sections/by-grade/{grade_id}/:
+    get:
+      operationId: academics_sections_by_grade_list
+      description: |-
+        GET /api/academics/sections/by-grade/<uuid>/
+        List all sections for a specific grade level (Director only).
+      parameters:
+      - in: path
+        name: grade_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedClassSectionList'
+          description: ''
+  /api/academics/subjects/:
+    get:
+      operationId: academics_subjects_list
+      description: |-
+        GET /api/academics/subjects/
+        POST /api/academics/subjects/
+        List all subjects or create a new one (Director only).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubjectList'
+          description: ''
+    post:
+      operationId: academics_subjects_create
+      description: |-
+        GET /api/academics/subjects/
+        POST /api/academics/subjects/
+        List all subjects or create a new one (Director only).
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubjectCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubjectCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectCreate'
+          description: ''
+  /api/academics/subjects/{id}/:
+    get:
+      operationId: academics_subjects_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/subjects/<uuid>/
+        Retrieve, update, or delete a subject (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+          description: ''
+    put:
+      operationId: academics_subjects_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/subjects/<uuid>/
+        Retrieve, update, or delete a subject (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubjectRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+          description: ''
+    patch:
+      operationId: academics_subjects_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/subjects/<uuid>/
+        Retrieve, update, or delete a subject (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSubjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSubjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSubjectRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+          description: ''
+    delete:
+      operationId: academics_subjects_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/subjects/<uuid>/
+        Retrieve, update, or delete a subject (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/academics/years/:
+    get:
+      operationId: academics_years_list
+      description: |-
+        GET /api/academics/years/
+        POST /api/academics/years/
+        List all academic years or create a new one (Director only).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAcademicYearList'
+          description: ''
+    post:
+      operationId: academics_years_create
+      description: |-
+        GET /api/academics/years/
+        POST /api/academics/years/
+        List all academic years or create a new one (Director only).
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicYearCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AcademicYearCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AcademicYearCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicYearCreate'
+          description: ''
+  /api/academics/years/{id}/:
+    get:
+      operationId: academics_years_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/years/<uuid>/
+        Retrieve, update, or delete an academic year (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicYear'
+          description: ''
+    put:
+      operationId: academics_years_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/years/<uuid>/
+        Retrieve, update, or delete an academic year (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicYearRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AcademicYearRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AcademicYearRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicYear'
+          description: ''
+    patch:
+      operationId: academics_years_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/years/<uuid>/
+        Retrieve, update, or delete an academic year (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAcademicYearRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAcademicYearRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAcademicYearRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicYear'
+          description: ''
+    delete:
+      operationId: academics_years_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/academics/years/<uuid>/
+        Retrieve, update, or delete an academic year (Director only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/academics/years/active/:
+    get:
+      operationId: academics_years_active_retrieve
+      description: |-
+        GET /api/academics/years/active/
+        Get the currently active academic year.
+      summary: Get the currently active academic year
+      tags:
+      - Academics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicYear'
+          description: ''
+  /api/attendance/:
+    get:
+      operationId: attendance_list
+      description: |-
+        GET /api/attendance/
+        List attendance records with optional filters.
+
+        Results are always narrowed to what the caller may read before the
+        query-parameter filters are applied.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - attendance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAttendanceList'
+          description: ''
+  /api/attendance/{id}/:
+    get:
+      operationId: attendance_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/attendance/<uuid>/
+        Retrieve, update, or delete a single attendance record.
+
+        Teachers are limited to records on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attendance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+          description: ''
+    put:
+      operationId: attendance_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/attendance/<uuid>/
+        Retrieve, update, or delete a single attendance record.
+
+        Teachers are limited to records on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attendance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AttendanceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttendanceRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+          description: ''
+    patch:
+      operationId: attendance_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/attendance/<uuid>/
+        Retrieve, update, or delete a single attendance record.
+
+        Teachers are limited to records on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attendance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAttendanceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAttendanceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAttendanceRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+          description: ''
+    delete:
+      operationId: attendance_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/attendance/<uuid>/
+        Retrieve, update, or delete a single attendance record.
+
+        Teachers are limited to records on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - attendance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/attendance/bulk-submit/:
+    post:
+      operationId: attendance_bulk_submit_create
+      description: |-
+        POST /api/attendance/bulk-submit/
+        Teachers submit daily or subject-level attendance logs.
+
+        Accepts:
+            subject_assignment_id (uuid)
+            date (YYYY-MM-DD)
+            records: [
+                { student_id, status, remarks? },
+                ...
+            ]
+      summary: Submit bulk attendance records for a class
+      tags:
+      - Attendance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkAttendanceSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BulkAttendanceSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BulkAttendanceSubmitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance'
+          description: ''
+  /api/attendance/record/:
+    post:
+      operationId: attendance_record_create
+      description: |-
+        POST /api/attendance/record/
+        Create or update a single attendance record.
+
+        Accepts: student_id, subject_assignment_id, date, status, remarks
+      summary: Record or update single student attendance
+      tags:
+      - Attendance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AttendanceCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttendanceCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+          description: ''
+  /api/attendance/student/{student_id}/absences/:
+    get:
+      operationId: attendance_student_absences_retrieve
+      description: |-
+        GET /api/attendance/student/<uuid>/absences/
+        Get absence count and recent absent records for a student.
+      summary: Get student absence count and history
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Attendance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/attendance/subject/{subject_assignment_id}/date/{target_date}/:
+    get:
+      operationId: attendance_subject_date_list
+      description: |-
+        GET /api/attendance/subject/<uuid>/date/<date>/
+        Get all attendance records for a subject assignment on a specific date.
+      summary: Get attendance roll for subject assignment on a specific date
+      parameters:
+      - in: path
+        name: subject_assignment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: target_date
+        schema:
+          type: string
+        required: true
+      tags:
+      - Attendance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance'
+          description: ''
+  /api/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      description: |-
+        POST /api/auth/change-password/
+        Change the current user's password.
+      summary: Change user account password
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        POST /api/auth/login/
+        Authenticate user and return JWT tokens.
+      summary: Authenticate user and issue JWT tokens
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      description: |-
+        POST /api/auth/logout/
+        Blacklist the refresh token to log out.
+        Allows unauthenticated access so logout works even if access token is expired.
+      summary: Log out and blacklist refresh token
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogoutRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          description: ''
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: |-
+        GET/PUT/PATCH /api/auth/me/
+        Get or update the current user's profile.
+      summary: Retrieve or update current user profile
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: auth_me_update
+      description: |-
+        GET/PUT/PATCH /api/auth/me/
+        Get or update the current user's profile.
+      summary: Retrieve or update current user profile
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: |-
+        GET/PUT/PATCH /api/auth/me/
+        Get or update the current user's profile.
+      summary: Retrieve or update current user profile
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      description: Registers a user. Returns tokens on self-registration.
+      summary: Register a new user account
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/token/verify/:
+    post:
+      operationId: auth_token_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: No response body
+  /api/enrollment/guardians/:
+    get:
+      operationId: enrollment_guardians_list
+      description: |-
+        GET  /api/enrollment/guardians/             – List guardian links in scope
+        POST /api/enrollment/guardians/             – Create a link (Director)
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentGuardianList'
+          description: ''
+    post:
+      operationId: enrollment_guardians_create
+      description: |-
+        GET  /api/enrollment/guardians/             – List guardian links in scope
+        POST /api/enrollment/guardians/             – Create a link (Director)
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGuardianCreate'
+          description: ''
+  /api/enrollment/guardians/{id}/:
+    get:
+      operationId: enrollment_guardians_retrieve
+      description: |-
+        GET    /api/enrollment/guardians/<uuid>/   – Retrieve
+        DELETE /api/enrollment/guardians/<uuid>/   – Unlink (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGuardian'
+          description: ''
+    delete:
+      operationId: enrollment_guardians_destroy
+      description: |-
+        GET    /api/enrollment/guardians/<uuid>/   – Retrieve
+        DELETE /api/enrollment/guardians/<uuid>/   – Unlink (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/enrollment/guardians/parent/{parent_id}/:
+    get:
+      operationId: enrollment_guardians_parent_list
+      description: |-
+        GET /api/enrollment/guardians/parent/<uuid>/ – Get children of a parent
+
+        ``parent_id`` is a ParentProfile UUID, not a User UUID. Parents may only
+        read their own list.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: parent_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentGuardianList'
+          description: ''
+  /api/enrollment/guardians/set-primary/:
+    post:
+      operationId: enrollment_guardians_set_primary_create
+      description: POST /api/enrollment/guardians/set-primary/ – Set a parent as primary
+        (Director)
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentGuardianCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGuardianCreate'
+          description: ''
+  /api/enrollment/guardians/student/{student_id}/:
+    get:
+      operationId: enrollment_guardians_student_list
+      description: GET /api/enrollment/guardians/student/<uuid>/ – Get guardians of
+        a student
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: student_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentGuardianList'
+          description: ''
+  /api/enrollment/me/:
+    get:
+      operationId: enrollment_me_retrieve
+      description: |-
+        GET /api/enrollment/me/ – Resolve the caller's own domain profile.
+
+        Attendance, grades and guardian links are keyed by StudentProfile /
+        ParentProfile UUIDs, not by the User UUID that the client holds after
+        login. Without this endpoint the browser client had no way to find its
+        own profile id and silently queried with the wrong key, so every
+        student and parent page came back empty.
+      summary: Resolve caller's own domain profile (Student, Teacher, Parent)
+      tags:
+      - Enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/enrollment/parents/:
+    get:
+      operationId: enrollment_parents_list
+      description: |-
+        GET  /api/enrollment/parents/       – List parent profiles in scope
+        POST /api/enrollment/parents/       – Create a parent profile (Director)
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedParentProfileList'
+          description: ''
+    post:
+      operationId: enrollment_parents_create
+      description: |-
+        GET  /api/enrollment/parents/       – List parent profiles in scope
+        POST /api/enrollment/parents/       – Create a parent profile (Director)
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentProfileCreate'
+          description: ''
+  /api/enrollment/parents/{id}/:
+    get:
+      operationId: enrollment_parents_retrieve
+      description: |-
+        GET    /api/enrollment/parents/<uuid>/   – Retrieve
+        PUT    /api/enrollment/parents/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/parents/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/parents/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentProfile'
+          description: ''
+    put:
+      operationId: enrollment_parents_update
+      description: |-
+        GET    /api/enrollment/parents/<uuid>/   – Retrieve
+        PUT    /api/enrollment/parents/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/parents/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/parents/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ParentProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentProfileCreate'
+          description: ''
+    patch:
+      operationId: enrollment_parents_partial_update
+      description: |-
+        GET    /api/enrollment/parents/<uuid>/   – Retrieve
+        PUT    /api/enrollment/parents/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/parents/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/parents/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedParentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedParentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedParentProfileCreateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentProfileCreate'
+          description: ''
+    delete:
+      operationId: enrollment_parents_destroy
+      description: |-
+        GET    /api/enrollment/parents/<uuid>/   – Retrieve
+        PUT    /api/enrollment/parents/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/parents/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/parents/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/enrollment/students/:
+    get:
+      operationId: enrollment_students_list
+      description: |-
+        GET  /api/enrollment/students/       – List student profiles in scope
+        POST /api/enrollment/students/       – Create a student profile (Director)
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentProfileList'
+          description: ''
+    post:
+      operationId: enrollment_students_create
+      description: |-
+        GET  /api/enrollment/students/       – List student profiles in scope
+        POST /api/enrollment/students/       – Create a student profile (Director)
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfileCreate'
+          description: ''
+  /api/enrollment/students/{id}/:
+    get:
+      operationId: enrollment_students_retrieve
+      description: |-
+        GET    /api/enrollment/students/<uuid>/   – Retrieve
+        PUT    /api/enrollment/students/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/students/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/students/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfile'
+          description: ''
+    put:
+      operationId: enrollment_students_update
+      description: |-
+        GET    /api/enrollment/students/<uuid>/   – Retrieve
+        PUT    /api/enrollment/students/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/students/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/students/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfileCreate'
+          description: ''
+    patch:
+      operationId: enrollment_students_partial_update
+      description: |-
+        GET    /api/enrollment/students/<uuid>/   – Retrieve
+        PUT    /api/enrollment/students/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/students/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/students/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentProfileCreateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentProfileCreate'
+          description: ''
+    delete:
+      operationId: enrollment_students_destroy
+      description: |-
+        GET    /api/enrollment/students/<uuid>/   – Retrieve
+        PUT    /api/enrollment/students/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/students/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/students/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/enrollment/students/by-section/{section_id}/:
+    get:
+      operationId: enrollment_students_by_section_list
+      description: |-
+        GET /api/enrollment/students/by-section/<uuid>/ – Section roster
+
+        Teachers need this to take attendance and enter marks, so it is readable
+        by directors and teachers but never writable.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: section_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentProfileList'
+          description: ''
+  /api/enrollment/teachers/:
+    get:
+      operationId: enrollment_teachers_list
+      description: |-
+        GET  /api/enrollment/teachers/       – List teacher profiles in scope
+        POST /api/enrollment/teachers/       – Create a teacher profile (Director)
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTeacherProfileList'
+          description: ''
+    post:
+      operationId: enrollment_teachers_create
+      description: |-
+        GET  /api/enrollment/teachers/       – List teacher profiles in scope
+        POST /api/enrollment/teachers/       – Create a teacher profile (Director)
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfileCreate'
+          description: ''
+  /api/enrollment/teachers/{id}/:
+    get:
+      operationId: enrollment_teachers_retrieve
+      description: |-
+        GET    /api/enrollment/teachers/<uuid>/   – Retrieve
+        PUT    /api/enrollment/teachers/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/teachers/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/teachers/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfile'
+          description: ''
+    put:
+      operationId: enrollment_teachers_update
+      description: |-
+        GET    /api/enrollment/teachers/<uuid>/   – Retrieve
+        PUT    /api/enrollment/teachers/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/teachers/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/teachers/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeacherProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfileCreate'
+          description: ''
+    patch:
+      operationId: enrollment_teachers_partial_update
+      description: |-
+        GET    /api/enrollment/teachers/<uuid>/   – Retrieve
+        PUT    /api/enrollment/teachers/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/teachers/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/teachers/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTeacherProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTeacherProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTeacherProfileCreateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherProfileCreate'
+          description: ''
+    delete:
+      operationId: enrollment_teachers_destroy
+      description: |-
+        GET    /api/enrollment/teachers/<uuid>/   – Retrieve
+        PUT    /api/enrollment/teachers/<uuid>/   – Full update (Director)
+        PATCH  /api/enrollment/teachers/<uuid>/   – Partial update (Director)
+        DELETE /api/enrollment/teachers/<uuid>/   – Delete (Director)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - enrollment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/grading/categories/:
+    get:
+      operationId: grading_categories_list
+      description: |-
+        GET  /api/grading/categories/       – List assessment categories
+        POST /api/grading/categories/       – Create assessment category (Teacher/Director)
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssessmentCategoryList'
+          description: ''
+    post:
+      operationId: grading_categories_create
+      description: |-
+        GET  /api/grading/categories/       – List assessment categories
+        POST /api/grading/categories/       – Create assessment category (Teacher/Director)
+      tags:
+      - grading
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCategoryCreate'
+          description: ''
+  /api/grading/categories/{id}/:
+    get:
+      operationId: grading_categories_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/categories/<uuid>/
+
+        Teachers are limited to categories on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCategory'
+          description: ''
+    put:
+      operationId: grading_categories_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/categories/<uuid>/
+
+        Teachers are limited to categories on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssessmentCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCategory'
+          description: ''
+    patch:
+      operationId: grading_categories_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/categories/<uuid>/
+
+        Teachers are limited to categories on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssessmentCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAssessmentCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAssessmentCategoryRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCategory'
+          description: ''
+    delete:
+      operationId: grading_categories_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/categories/<uuid>/
+
+        Teachers are limited to categories on their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/grading/grades/:
+    get:
+      operationId: grading_grades_list
+      description: |-
+        GET /api/grading/grades/ – List grades with optional filters
+
+        Results are narrowed to what the caller may read before the
+        query-parameter filters are applied.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGradeList'
+          description: ''
+  /api/grading/grades/{id}/:
+    get:
+      operationId: grading_grades_retrieve
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/grades/<uuid>/
+
+        Teachers are limited to grades under their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+          description: ''
+    put:
+      operationId: grading_grades_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/grades/<uuid>/
+
+        Teachers are limited to grades under their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+          description: ''
+    patch:
+      operationId: grading_grades_partial_update
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/grades/<uuid>/
+
+        Teachers are limited to grades under their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGradeRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+          description: ''
+    delete:
+      operationId: grading_grades_destroy
+      description: |-
+        GET/PUT/PATCH/DELETE /api/grading/grades/<uuid>/
+
+        Teachers are limited to grades under their own subject assignments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/grading/grades/bulk-submit/:
+    post:
+      operationId: grading_grades_bulk_submit_create
+      description: |-
+        POST /api/grading/grades/bulk-submit/
+        Teachers submit marks for all students in an assessment category.
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/grading/grades/record/:
+    post:
+      operationId: grading_grades_record_create
+      description: |-
+        POST /api/grading/grades/record/
+        Create or update a single grade for one student.
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/grading/my-report-card/{academic_year_id}/:
+    get:
+      operationId: grading_my_report_card_retrieve
+      description: |-
+        GET /api/grading/my-report-card/<uuid:academic_year_id>/
+        Students can view their own report card.
+      parameters:
+      - in: path
+        name: academic_year_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/grading/report-card/{student_id}/{academic_year_id}/:
+    get:
+      operationId: grading_report_card_retrieve
+      description: |-
+        GET /api/grading/report-card/<uuid:student_id>/<uuid:academic_year_id>/
+        Get the full report card for a student in an academic year.
+
+        Readable by a director, a teacher who teaches the student, the student
+        themselves, or one of their linked parents. This endpoint was previously
+        open to every authenticated user, so any student could read any other
+        student's full academic record by changing the UUID in the URL.
+      parameters:
+      - in: path
+        name: academic_year_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: student_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/grading/subject-total/{student_id}/{subject_assignment_id}/:
+    get:
+      operationId: grading_subject_total_retrieve
+      description: |-
+        GET /api/grading/subject-total/<uuid:student_id>/<uuid:subject_assignment_id>/
+        Calculate weighted total for a student in a specific subject.
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: subject_assignment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - grading
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    AcademicYear:
+      type: object
+      description: Serializer for AcademicYear model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          description: e.g., 2024-2025
+          maxLength: 20
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+          description: Only one academic year can be active at a time
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - end_date
+      - id
+      - name
+      - start_date
+      - updated_at
+    AcademicYearCreate:
+      type: object
+      description: Serializer for creating AcademicYear.
+      properties:
+        name:
+          type: string
+          description: e.g., 2024-2025
+          maxLength: 20
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+          description: Only one academic year can be active at a time
+      required:
+      - end_date
+      - name
+      - start_date
+    AcademicYearCreateRequest:
+      type: object
+      description: Serializer for creating AcademicYear.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., 2024-2025
+          maxLength: 20
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+          description: Only one academic year can be active at a time
+      required:
+      - end_date
+      - name
+      - start_date
+    AcademicYearRequest:
+      type: object
+      description: Serializer for AcademicYear model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., 2024-2025
+          maxLength: 20
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+          description: Only one academic year can be active at a time
+      required:
+      - end_date
+      - name
+      - start_date
+    AssessmentCategory:
+      type: object
+      description: Read-only serializer for AssessmentCategory with nested info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          description: Category name, e.g., Midterm, Final Exam, Quizzes
+          maxLength: 100
+        subject_assignment:
+          type: string
+          format: uuid
+        subject_name:
+          type: string
+          readOnly: true
+        subject_code:
+          type: string
+          readOnly: true
+        section:
+          type: string
+          format: uuid
+          readOnly: true
+        section_name:
+          type: string
+          readOnly: true
+        teacher_name:
+          type: string
+          readOnly: true
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Weight as percentage, e.g., 30.00 for 30%
+        description:
+          type: string
+          description: Optional description of this assessment category
+        graded_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - graded_count
+      - id
+      - name
+      - section
+      - section_name
+      - subject_assignment
+      - subject_code
+      - subject_name
+      - teacher_name
+      - updated_at
+      - weight
+    AssessmentCategoryCreate:
+      type: object
+      description: Serializer for creating an AssessmentCategory.
+      properties:
+        name:
+          type: string
+          description: Category name, e.g., Midterm, Final Exam, Quizzes
+          maxLength: 100
+        subject_assignment:
+          type: string
+          format: uuid
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Weight as percentage, e.g., 30.00 for 30%
+        description:
+          type: string
+          description: Optional description of this assessment category
+      required:
+      - name
+      - subject_assignment
+      - weight
+    AssessmentCategoryCreateRequest:
+      type: object
+      description: Serializer for creating an AssessmentCategory.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Category name, e.g., Midterm, Final Exam, Quizzes
+          maxLength: 100
+        subject_assignment:
+          type: string
+          format: uuid
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Weight as percentage, e.g., 30.00 for 30%
+        description:
+          type: string
+          description: Optional description of this assessment category
+      required:
+      - name
+      - subject_assignment
+      - weight
+    AssessmentCategoryRequest:
+      type: object
+      description: Read-only serializer for AssessmentCategory with nested info.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Category name, e.g., Midterm, Final Exam, Quizzes
+          maxLength: 100
+        subject_assignment:
+          type: string
+          format: uuid
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Weight as percentage, e.g., 30.00 for 30%
+        description:
+          type: string
+          description: Optional description of this assessment category
+      required:
+      - name
+      - subject_assignment
+      - weight
+    Attendance:
+      type: object
+      description: Read-only serializer for Attendance with nested related info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+          readOnly: true
+        student_code:
+          type: string
+          readOnly: true
+        subject_assignment:
+          type: string
+          format: uuid
+        subject_name:
+          type: string
+          readOnly: true
+        subject_code:
+          type: string
+          readOnly: true
+        section_name:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date
+          description: Date of the attendance record
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        remarks:
+          type: string
+          description: Optional teacher remarks for this attendance record
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this attendance
+        recorded_by_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - date
+      - id
+      - recorded_by_name
+      - section_name
+      - student
+      - student_code
+      - student_name
+      - subject_assignment
+      - subject_code
+      - subject_name
+      - updated_at
+    AttendanceCreateRequest:
+      type: object
+      description: Serializer for creating or updating a single attendance record.
+      properties:
+        student:
+          type: string
+          format: uuid
+        subject_assignment:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+          description: Date of the attendance record
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        remarks:
+          type: string
+          description: Optional teacher remarks for this attendance record
+      required:
+      - date
+      - student
+      - subject_assignment
+    AttendanceRecordInputRequest:
+      type: object
+      description: Single item inside a bulk attendance payload.
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          description: UUID of the StudentProfile
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          description: |-
+            PRESENT, ABSENT, LATE, or EXCUSED
+
+            * `PRESENT` - Present
+            * `ABSENT` - Absent
+            * `LATE` - Late
+            * `EXCUSED` - Excused
+        remarks:
+          type: string
+          default: ''
+          description: Optional teacher remarks
+      required:
+      - status
+      - student_id
+    AttendanceRequest:
+      type: object
+      description: Read-only serializer for Attendance with nested related info.
+      properties:
+        student:
+          type: string
+          format: uuid
+        subject_assignment:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+          description: Date of the attendance record
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        remarks:
+          type: string
+          description: Optional teacher remarks for this attendance record
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this attendance
+      required:
+      - date
+      - student
+      - subject_assignment
+    BulkAttendanceSubmitRequest:
+      type: object
+      description: |-
+        Serializer for the bulk attendance submission endpoint.
+        Teachers submit attendance for an entire subject assignment and date.
+      properties:
+        subject_assignment_id:
+          type: string
+          format: uuid
+          description: UUID of the SubjectAssignment
+        date:
+          type: string
+          format: date
+          description: Date of the attendance (YYYY-MM-DD)
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendanceRecordInputRequest'
+          description: List of student attendance records
+      required:
+      - date
+      - records
+      - subject_assignment_id
+    ChangePasswordRequest:
+      type: object
+      description: Serializer for changing password.
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        new_password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - new_password
+      - new_password_confirm
+      - old_password
+    ClassSection:
+      type: object
+      description: Serializer for ClassSection model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        grade_level:
+          type: string
+          format: uuid
+        grade_level_name:
+          type: string
+          readOnly: true
+        academic_year_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: Section name, e.g., A, B, C
+          maxLength: 20
+        capacity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Maximum number of students
+        room_number:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        student_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - academic_year_name
+      - created_at
+      - grade_level
+      - grade_level_name
+      - id
+      - name
+      - student_count
+      - updated_at
+    ClassSectionCreate:
+      type: object
+      description: Serializer for creating ClassSection.
+      properties:
+        grade_level:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Section name, e.g., A, B, C
+          maxLength: 20
+        capacity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Maximum number of students
+        room_number:
+          type: string
+          maxLength: 20
+      required:
+      - grade_level
+      - name
+    ClassSectionCreateRequest:
+      type: object
+      description: Serializer for creating ClassSection.
+      properties:
+        grade_level:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          description: Section name, e.g., A, B, C
+          maxLength: 20
+        capacity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Maximum number of students
+        room_number:
+          type: string
+          maxLength: 20
+      required:
+      - grade_level
+      - name
+    ClassSectionRequest:
+      type: object
+      description: Serializer for ClassSection model.
+      properties:
+        grade_level:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          description: Section name, e.g., A, B, C
+          maxLength: 20
+        capacity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Maximum number of students
+        room_number:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+      required:
+      - grade_level
+      - name
+    Grade:
+      type: object
+      description: Read-only serializer for Grade with nested info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+          readOnly: true
+        student_code:
+          type: string
+          readOnly: true
+        assessment_category:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+          readOnly: true
+        category_weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
+        subject_name:
+          type: string
+          readOnly: true
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Student's raw score
+        max_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Maximum possible score for this assessment
+        percentage:
+          type: number
+          format: double
+          readOnly: true
+        weighted_score:
+          type: number
+          format: double
+          readOnly: true
+        remarks:
+          type: string
+          description: Optional teacher remarks for this grade
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this grade
+        recorded_by_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - assessment_category
+      - category_name
+      - category_weight
+      - created_at
+      - id
+      - max_score
+      - percentage
+      - recorded_by_name
+      - score
+      - student
+      - student_code
+      - student_name
+      - subject_name
+      - updated_at
+      - weighted_score
+    GradeLevel:
+      type: object
+      description: Serializer for GradeLevel model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          description: e.g., Grade 9
+          maxLength: 50
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          description: |-
+            Numeric grade level (9-12)
+
+            * `9` - Grade 9
+            * `10` - Grade 10
+            * `11` - Grade 11
+            * `12` - Grade 12
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        academic_year:
+          type: string
+          format: uuid
+        academic_year_name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - academic_year
+      - academic_year_name
+      - created_at
+      - id
+      - level
+      - name
+      - updated_at
+    GradeLevelCreate:
+      type: object
+      description: Serializer for creating GradeLevel.
+      properties:
+        name:
+          type: string
+          description: e.g., Grade 9
+          maxLength: 50
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          description: |-
+            Numeric grade level (9-12)
+
+            * `9` - Grade 9
+            * `10` - Grade 10
+            * `11` - Grade 11
+            * `12` - Grade 12
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        academic_year:
+          type: string
+          format: uuid
+        description:
+          type: string
+      required:
+      - academic_year
+      - level
+      - name
+    GradeLevelCreateRequest:
+      type: object
+      description: Serializer for creating GradeLevel.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., Grade 9
+          maxLength: 50
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          description: |-
+            Numeric grade level (9-12)
+
+            * `9` - Grade 9
+            * `10` - Grade 10
+            * `11` - Grade 11
+            * `12` - Grade 12
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        academic_year:
+          type: string
+          format: uuid
+        description:
+          type: string
+      required:
+      - academic_year
+      - level
+      - name
+    GradeLevelRequest:
+      type: object
+      description: Serializer for GradeLevel model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., Grade 9
+          maxLength: 50
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          description: |-
+            Numeric grade level (9-12)
+
+            * `9` - Grade 9
+            * `10` - Grade 10
+            * `11` - Grade 11
+            * `12` - Grade 12
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        academic_year:
+          type: string
+          format: uuid
+        description:
+          type: string
+      required:
+      - academic_year
+      - level
+      - name
+    GradeRequest:
+      type: object
+      description: Read-only serializer for Grade with nested info.
+      properties:
+        student:
+          type: string
+          format: uuid
+        assessment_category:
+          type: string
+          format: uuid
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Student's raw score
+        max_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Maximum possible score for this assessment
+        remarks:
+          type: string
+          description: Optional teacher remarks for this grade
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this grade
+      required:
+      - assessment_category
+      - max_score
+      - score
+      - student
+    LevelEnum:
+      enum:
+      - 9
+      - 10
+      - 11
+      - 12
+      type: integer
+      description: |-
+        * `9` - Grade 9
+        * `10` - Grade 10
+        * `11` - Grade 11
+        * `12` - Grade 12
+    LoginData:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+      required:
+      - tokens
+      - user
+    LoginRequest:
+      type: object
+      description: Serializer for login endpoint.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LoginData'
+      required:
+      - data
+      - message
+      - success
+    LogoutRequestRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+          description: JWT refresh token to invalidate
+      required:
+      - refresh
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
+    PaginatedAcademicYearList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicYear'
+    PaginatedAssessmentCategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentCategory'
+    PaginatedAttendanceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendance'
+    PaginatedClassSectionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassSection'
+    PaginatedGradeLevelList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradeLevel'
+    PaginatedGradeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Grade'
+    PaginatedParentProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParentProfile'
+    PaginatedStudentGuardianList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentGuardian'
+    PaginatedStudentProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentProfile'
+    PaginatedSubjectAssignmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAssignment'
+    PaginatedSubjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+    PaginatedTeacherProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeacherProfile'
+    ParentProfile:
+      type: object
+      description: Read-only serializer for ParentProfile with nested user info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          readOnly: true
+        user_full_name:
+          type: string
+          readOnly: true
+        occupation:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+        secondary_phone:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - updated_at
+      - user
+      - user_email
+      - user_full_name
+    ParentProfileCreate:
+      type: object
+      description: Serializer for creating a ParentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        occupation:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+        secondary_phone:
+          type: string
+          maxLength: 20
+      required:
+      - user
+    ParentProfileCreateRequest:
+      type: object
+      description: Serializer for creating a ParentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        occupation:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+        secondary_phone:
+          type: string
+          maxLength: 20
+      required:
+      - user
+    PatchedAcademicYearRequest:
+      type: object
+      description: Serializer for AcademicYear model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., 2024-2025
+          maxLength: 20
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+          description: Only one academic year can be active at a time
+    PatchedAssessmentCategoryRequest:
+      type: object
+      description: Read-only serializer for AssessmentCategory with nested info.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Category name, e.g., Midterm, Final Exam, Quizzes
+          maxLength: 100
+        subject_assignment:
+          type: string
+          format: uuid
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Weight as percentage, e.g., 30.00 for 30%
+        description:
+          type: string
+          description: Optional description of this assessment category
+    PatchedAttendanceRequest:
+      type: object
+      description: Read-only serializer for Attendance with nested related info.
+      properties:
+        student:
+          type: string
+          format: uuid
+        subject_assignment:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+          description: Date of the attendance record
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        remarks:
+          type: string
+          description: Optional teacher remarks for this attendance record
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this attendance
+    PatchedClassSectionRequest:
+      type: object
+      description: Serializer for ClassSection model.
+      properties:
+        grade_level:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          description: Section name, e.g., A, B, C
+          maxLength: 20
+        capacity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Maximum number of students
+        room_number:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+    PatchedGradeLevelRequest:
+      type: object
+      description: Serializer for GradeLevel model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: e.g., Grade 9
+          maxLength: 50
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          description: |-
+            Numeric grade level (9-12)
+
+            * `9` - Grade 9
+            * `10` - Grade 10
+            * `11` - Grade 11
+            * `12` - Grade 12
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        academic_year:
+          type: string
+          format: uuid
+        description:
+          type: string
+    PatchedGradeRequest:
+      type: object
+      description: Read-only serializer for Grade with nested info.
+      properties:
+        student:
+          type: string
+          format: uuid
+        assessment_category:
+          type: string
+          format: uuid
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Student's raw score
+        max_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,2})?$
+          description: Maximum possible score for this assessment
+        remarks:
+          type: string
+          description: Optional teacher remarks for this grade
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Teacher or staff who recorded this grade
+    PatchedParentProfileCreateRequest:
+      type: object
+      description: Serializer for creating a ParentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        occupation:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+        secondary_phone:
+          type: string
+          maxLength: 20
+    PatchedStudentProfileCreateRequest:
+      type: object
+      description: Serializer for creating a StudentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          minLength: 1
+          description: Institutional student ID, e.g., STU-2024-001
+          maxLength: 20
+        section:
+          type: string
+          format: uuid
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+        guardian_contact:
+          type: string
+          description: Primary guardian phone number
+          maxLength: 20
+        medical_notes:
+          type: string
+          description: Allergies, conditions, etc.
+    PatchedSubjectRequest:
+      type: object
+      description: Serializer for Subject model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Subject name, e.g., Mathematics
+          maxLength: 100
+        code:
+          type: string
+          minLength: 1
+          description: Subject code, e.g., MATH101
+          maxLength: 20
+        description:
+          type: string
+        grade_levels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Grade levels this subject is offered in
+        is_active:
+          type: boolean
+    PatchedTeacherProfileCreateRequest:
+      type: object
+      description: Serializer for creating a TeacherProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          minLength: 1
+          description: Institutional employee ID, e.g., TCH-2024-001
+          maxLength: 20
+        department:
+          type: string
+          description: Department name, e.g., Mathematics
+          maxLength: 100
+        specialization:
+          type: string
+          description: Areas of specialization
+          maxLength: 200
+        qualification:
+          type: string
+          description: Highest qualification, e.g., M.Sc. Mathematics
+          maxLength: 200
+    PatchedUserRequest:
+      type: object
+      description: Serializer for User model - read operations.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 20
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+    RelationshipEnum:
+      enum:
+      - FATHER
+      - MOTHER
+      - GUARDIAN
+      - SIBLING
+      - OTHER
+      type: string
+      description: |-
+        * `FATHER` - Father
+        * `MOTHER` - Mother
+        * `GUARDIAN` - Guardian
+        * `SIBLING` - Sibling
+        * `OTHER` - Other
+    RoleEnum:
+      enum:
+      - DIRECTOR
+      - TEACHER
+      - STUDENT
+      - PARENT
+      type: string
+      description: |-
+        * `DIRECTOR` - Director
+        * `TEACHER` - Teacher
+        * `STUDENT` - Student
+        * `PARENT` - Parent
+    StatusEnum:
+      enum:
+      - PRESENT
+      - ABSENT
+      - LATE
+      - EXCUSED
+      type: string
+      description: |-
+        * `PRESENT` - Present
+        * `ABSENT` - Absent
+        * `LATE` - Late
+        * `EXCUSED` - Excused
+    StudentGuardian:
+      type: object
+      description: Read-only serializer for StudentGuardian with nested profile info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent:
+          type: string
+          format: uuid
+        parent_name:
+          type: string
+          readOnly: true
+        student:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+          readOnly: true
+        student_id_code:
+          type: string
+          readOnly: true
+        relationship:
+          $ref: '#/components/schemas/RelationshipEnum'
+        is_primary:
+          type: boolean
+          description: Mark as the primary/guardian of record
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - parent
+      - parent_name
+      - student
+      - student_id_code
+      - student_name
+      - updated_at
+    StudentGuardianCreate:
+      type: object
+      description: Serializer for creating a StudentGuardian link via API.
+      properties:
+        parent:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+        relationship:
+          $ref: '#/components/schemas/RelationshipEnum'
+        is_primary:
+          type: boolean
+          description: Mark as the primary/guardian of record
+      required:
+      - parent
+      - student
+    StudentGuardianCreateRequest:
+      type: object
+      description: Serializer for creating a StudentGuardian link via API.
+      properties:
+        parent:
+          type: string
+          format: uuid
+        student:
+          type: string
+          format: uuid
+        relationship:
+          $ref: '#/components/schemas/RelationshipEnum'
+        is_primary:
+          type: boolean
+          description: Mark as the primary/guardian of record
+      required:
+      - parent
+      - student
+    StudentProfile:
+      type: object
+      description: Read-only serializer for StudentProfile with nested user info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          readOnly: true
+        user_full_name:
+          type: string
+          readOnly: true
+        student_id:
+          type: string
+          description: Institutional student ID, e.g., STU-2024-001
+          maxLength: 20
+        section:
+          type: string
+          format: uuid
+          nullable: true
+        section_name:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+        enrollment_date:
+          type: string
+          format: date
+          readOnly: true
+        guardian_contact:
+          type: string
+          description: Primary guardian phone number
+          maxLength: 20
+        medical_notes:
+          type: string
+          description: Allergies, conditions, etc.
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - date_of_birth
+      - enrollment_date
+      - id
+      - section_name
+      - student_id
+      - updated_at
+      - user
+      - user_email
+      - user_full_name
+    StudentProfileCreate:
+      type: object
+      description: Serializer for creating a StudentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          description: Institutional student ID, e.g., STU-2024-001
+          maxLength: 20
+        section:
+          type: string
+          format: uuid
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+        guardian_contact:
+          type: string
+          description: Primary guardian phone number
+          maxLength: 20
+        medical_notes:
+          type: string
+          description: Allergies, conditions, etc.
+      required:
+      - date_of_birth
+      - student_id
+      - user
+    StudentProfileCreateRequest:
+      type: object
+      description: Serializer for creating a StudentProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          minLength: 1
+          description: Institutional student ID, e.g., STU-2024-001
+          maxLength: 20
+        section:
+          type: string
+          format: uuid
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+        guardian_contact:
+          type: string
+          description: Primary guardian phone number
+          maxLength: 20
+        medical_notes:
+          type: string
+          description: Allergies, conditions, etc.
+      required:
+      - date_of_birth
+      - student_id
+      - user
+    Subject:
+      type: object
+      description: Serializer for Subject model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          description: Subject name, e.g., Mathematics
+          maxLength: 100
+        code:
+          type: string
+          description: Subject code, e.g., MATH101
+          maxLength: 20
+        description:
+          type: string
+        grade_levels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Grade levels this subject is offered in
+        grade_level_names:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - grade_level_names
+      - id
+      - name
+      - updated_at
+    SubjectAssignment:
+      type: object
+      description: Serializer for SubjectAssignment model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        teacher:
+          type: string
+          format: uuid
+        teacher_name:
+          type: string
+          readOnly: true
+        teacher_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          format: uuid
+        subject_name:
+          type: string
+          readOnly: true
+        subject_code:
+          type: string
+          readOnly: true
+        section:
+          type: string
+          format: uuid
+        section_name:
+          type: string
+          readOnly: true
+        academic_year:
+          type: string
+          format: uuid
+        academic_year_name:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - academic_year
+      - academic_year_name
+      - created_at
+      - id
+      - section
+      - section_name
+      - subject
+      - subject_code
+      - subject_name
+      - teacher
+      - teacher_email
+      - teacher_name
+      - updated_at
+    SubjectAssignmentCreate:
+      type: object
+      description: Serializer for creating SubjectAssignment.
+      properties:
+        teacher:
+          type: string
+          format: uuid
+        subject:
+          type: string
+          format: uuid
+        section:
+          type: string
+          format: uuid
+        academic_year:
+          type: string
+          format: uuid
+          nullable: true
+          description: Defaults to the active academic year when omitted.
+      required:
+      - section
+      - subject
+      - teacher
+    SubjectAssignmentCreateRequest:
+      type: object
+      description: Serializer for creating SubjectAssignment.
+      properties:
+        teacher:
+          type: string
+          format: uuid
+        subject:
+          type: string
+          format: uuid
+        section:
+          type: string
+          format: uuid
+        academic_year:
+          type: string
+          format: uuid
+          nullable: true
+          description: Defaults to the active academic year when omitted.
+      required:
+      - section
+      - subject
+      - teacher
+    SubjectCreate:
+      type: object
+      description: Serializer for creating Subject.
+      properties:
+        name:
+          type: string
+          description: Subject name, e.g., Mathematics
+          maxLength: 100
+        code:
+          type: string
+          description: Subject code, e.g., MATH101
+          maxLength: 20
+        description:
+          type: string
+        grade_levels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Grade levels this subject is offered in
+      required:
+      - code
+      - name
+    SubjectCreateRequest:
+      type: object
+      description: Serializer for creating Subject.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Subject name, e.g., Mathematics
+          maxLength: 100
+        code:
+          type: string
+          minLength: 1
+          description: Subject code, e.g., MATH101
+          maxLength: 20
+        description:
+          type: string
+        grade_levels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Grade levels this subject is offered in
+      required:
+      - code
+      - name
+    SubjectRequest:
+      type: object
+      description: Serializer for Subject model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Subject name, e.g., Mathematics
+          maxLength: 100
+        code:
+          type: string
+          minLength: 1
+          description: Subject code, e.g., MATH101
+          maxLength: 20
+        description:
+          type: string
+        grade_levels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Grade levels this subject is offered in
+        is_active:
+          type: boolean
+      required:
+      - code
+      - name
+    TeacherProfile:
+      type: object
+      description: Read-only serializer for TeacherProfile with nested user info.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          readOnly: true
+        user_full_name:
+          type: string
+          readOnly: true
+        employee_id:
+          type: string
+          description: Institutional employee ID, e.g., TCH-2024-001
+          maxLength: 20
+        department:
+          type: string
+          description: Department name, e.g., Mathematics
+          maxLength: 100
+        specialization:
+          type: string
+          description: Areas of specialization
+          maxLength: 200
+        qualification:
+          type: string
+          description: Highest qualification, e.g., M.Sc. Mathematics
+          maxLength: 200
+        hire_date:
+          type: string
+          format: date
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - employee_id
+      - hire_date
+      - id
+      - updated_at
+      - user
+      - user_email
+      - user_full_name
+    TeacherProfileCreate:
+      type: object
+      description: Serializer for creating a TeacherProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          description: Institutional employee ID, e.g., TCH-2024-001
+          maxLength: 20
+        department:
+          type: string
+          description: Department name, e.g., Mathematics
+          maxLength: 100
+        specialization:
+          type: string
+          description: Areas of specialization
+          maxLength: 200
+        qualification:
+          type: string
+          description: Highest qualification, e.g., M.Sc. Mathematics
+          maxLength: 200
+      required:
+      - employee_id
+      - user
+    TeacherProfileCreateRequest:
+      type: object
+      description: Serializer for creating a TeacherProfile via API.
+      properties:
+        user:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          minLength: 1
+          description: Institutional employee ID, e.g., TCH-2024-001
+          maxLength: 20
+        department:
+          type: string
+          description: Department name, e.g., Mathematics
+          maxLength: 100
+        specialization:
+          type: string
+          description: Areas of specialization
+          maxLength: 200
+        qualification:
+          type: string
+          description: Highest qualification, e.g., M.Sc. Mathematics
+          maxLength: 200
+      required:
+      - employee_id
+      - user
+    TokenPair:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    TokenVerifyRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - token
+    User:
+      type: object
+      description: Serializer for User model - read operations.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 20
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        is_email_verified:
+          type: boolean
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_joined
+      - email
+      - id
+      - is_email_verified
+      - username
+    UserCreate:
+      type: object
+      description: Serializer for creating new users.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 20
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - email
+      - username
+    UserCreateRequest:
+      type: object
+      description: Serializer for creating new users.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 20
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - email
+      - password
+      - password_confirm
+      - username
+    UserRequest:
+      type: object
+      description: Serializer for User model - read operations.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 20
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - username
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Authentication
+  description: User registration, login, logout, and JWT tokens
+- name: Academics
+  description: Academic years, grade levels, class sections, and subjects
+- name: Enrollment
+  description: Student profiles, guardians, parents, and teacher records
+- name: Attendance
+  description: Daily student attendance tracking and records
+- name: Grading
+  description: Assessment categories, marks entry, and report cards
+- name: System
+  description: Health check and orchestration monitoring

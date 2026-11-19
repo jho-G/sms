@@ -1,7 +1,7 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from grading.models import AssessmentCategory, Grade
-
 
 # ---------------------------------------------------------------------------
 # Assessment Category Serializers
@@ -49,6 +49,7 @@ class AssessmentCategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.IntegerField())
     def get_graded_count(self, obj):
         """Number of students who have grades in this category."""
         return obj.grades.count()
@@ -73,9 +74,7 @@ class GradeSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source="student.user.get_full_name", read_only=True
     )
-    student_code = serializers.CharField(
-        source="student.student_id", read_only=True
-    )
+    student_code = serializers.CharField(source="student.student_id", read_only=True)
     category_name = serializers.CharField(
         source="assessment_category.name", read_only=True
     )
@@ -118,9 +117,11 @@ class GradeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.FloatField())
     def get_percentage(self, obj):
         return float(obj.percentage)
 
+    @extend_schema_field(serializers.FloatField())
     def get_weighted_score(self, obj):
         return float(obj.weighted_score)
 
@@ -178,9 +179,7 @@ class BulkGradeSubmitSerializer(serializers.Serializer):
 
     def validate_grades(self, value):
         if not value:
-            raise serializers.ValidationError(
-                "At least one grade entry is required."
-            )
+            raise serializers.ValidationError("At least one grade entry is required.")
         return value
 
 

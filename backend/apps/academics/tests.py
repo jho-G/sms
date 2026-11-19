@@ -1,12 +1,21 @@
 """
 Tests for academic structure, UUID routing and teacher scoping.
 """
+
 import uuid
 from datetime import date
 
 from django.urls import reverse
 
 from academics.models import AcademicYear, GradeLevel, SubjectAssignment
+from common.factories import (
+    AcademicYearFactory,
+    ClassSectionFactory,
+    GradeLevelFactory,
+    SubjectAssignmentFactory,
+    SubjectFactory,
+    TeacherUserFactory,
+)
 from common.testing import SchoolTestCase
 
 
@@ -56,9 +65,7 @@ class GradeLevelTests(SchoolTestCase):
             end_date=date(2027, 6, 30),
         )
 
-        GradeLevel.objects.create(
-            name="Grade 11", level=11, academic_year=next_year
-        )
+        GradeLevel.objects.create(name="Grade 11", level=11, academic_year=next_year)
 
         self.assertEqual(GradeLevel.objects.filter(level=11).count(), 2)
 
@@ -94,9 +101,7 @@ class SubjectAssignmentTests(SchoolTestCase):
         )
 
         self.assertEqual(response.status_code, 201, response.data)
-        self.assertEqual(
-            response.data["data"]["academic_year_name"], "2025-2026"
-        )
+        self.assertEqual(response.data["data"]["academic_year_name"], "2025-2026")
 
     def test_create_without_academic_year_falls_back_to_active(self):
         self.login(self.director)
@@ -171,3 +176,25 @@ class AssignmentAccessTests(SchoolTestCase):
         response = self.client.get(reverse("academics:assignment-list"))
 
         self.assertEqual(response.status_code, 403)
+
+
+class AcademicsFactoryTests(SchoolTestCase):
+    """Test suite using Academic factories."""
+
+    def test_factory_creates_structured_curriculum(self):
+        year = AcademicYearFactory.create(name="2029-2030")
+        grade = GradeLevelFactory.create(name="Grade 12", level=12, academic_year=year)
+        section = ClassSectionFactory.create(name="Honors", grade_level=grade)
+        subject = SubjectFactory.create(name="Calculus BC", code="CALC-BC")
+        teacher = TeacherUserFactory.create()
+
+        assignment = SubjectAssignmentFactory.create(
+            academic_year=year,
+            section=section,
+            subject=subject,
+            teacher=teacher,
+        )
+
+        self.assertEqual(assignment.academic_year.name, "2029-2030")
+        self.assertEqual(assignment.section.name, "Honors")
+        self.assertEqual(assignment.subject.code, "CALC-BC")

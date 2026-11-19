@@ -4,15 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Menu,
-  X,
-  Sun,
-  Moon,
-  LogOut,
-  GraduationCap,
-  ChevronDown,
-} from "lucide-react";
+import { Menu, X, Sun, Moon, LogOut, GraduationCap, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +63,10 @@ export function DashboardLayout({
               {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
 
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab("dashboard")}>
+            <div
+              className="flex items-center gap-2.5 cursor-pointer"
+              onClick={() => setActiveTab("dashboard")}
+            >
               <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
                 <GraduationCap className="h-6 w-6" />
               </div>
@@ -95,7 +90,11 @@ export function DashboardLayout({
               className="text-gray-600 dark:text-gray-300"
               title="Toggle theme"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
 
             {/* User Dropdown */}

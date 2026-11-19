@@ -3,12 +3,7 @@ import { api } from "@/services/api";
 import type { StudentProfile, StudentGuardian } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Shield, Calendar, Phone, Activity, GraduationCap } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -61,12 +56,12 @@ export function StudentDetailModal({
                   {student.student_id}
                 </Badge>
                 {student.section_name && (
-                  <Badge variant="secondary">
-                    Section {student.section_name}
-                  </Badge>
+                  <Badge variant="secondary">Section {student.section_name}</Badge>
                 )}
                 {student.is_active ? (
-                  <Badge variant="success" dot>Active</Badge>
+                  <Badge variant="success" dot>
+                    Active
+                  </Badge>
                 ) : (
                   <Badge variant="secondary">Inactive</Badge>
                 )}
@@ -96,7 +91,9 @@ export function StudentDetailModal({
             <span className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5" /> Primary Guardian Contact Phone
             </span>
-            <p className="font-medium mt-1">{student.guardian_contact || "No emergency phone registered"}</p>
+            <p className="font-medium mt-1">
+              {student.guardian_contact || "No emergency phone registered"}
+            </p>
           </div>
 
           {student.medical_notes && (
@@ -104,7 +101,9 @@ export function StudentDetailModal({
               <span className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1.5 font-semibold">
                 <Activity className="h-3.5 w-3.5" /> Medical Notes / Allergies
               </span>
-              <p className="mt-1 text-rose-900 dark:text-rose-200">{student.medical_notes}</p>
+              <p className="mt-1 text-rose-900 dark:text-rose-200">
+                {student.medical_notes}
+              </p>
             </div>
           )}
 
@@ -116,7 +115,9 @@ export function StudentDetailModal({
             {isLoading ? (
               <p className="text-xs text-muted-foreground">Loading guardians...</p>
             ) : guardians.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">No parent account linked yet.</p>
+              <p className="text-xs text-muted-foreground italic">
+                No parent account linked yet.
+              </p>
             ) : (
               <div className="space-y-2">
                 {guardians.map((g) => (
@@ -132,9 +133,7 @@ export function StudentDetailModal({
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{g.relationship}</Badge>
-                      {g.is_primary && (
-                        <Badge variant="info">Primary</Badge>
-                      )}
+                      {g.is_primary && <Badge variant="info">Primary</Badge>}
                     </div>
                   </div>
                 ))}

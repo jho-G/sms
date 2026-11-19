@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -176,13 +182,19 @@ export function SubjectsView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading curriculum subjects...
                   </TableCell>
                 </TableRow>
               ) : subjects.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No subjects found.
                   </TableCell>
                 </TableRow>
@@ -206,7 +218,9 @@ export function SubjectsView() {
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-xs text-muted-foreground">All grades</span>
+                          <span className="text-xs text-muted-foreground">
+                            All grades
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -215,7 +229,9 @@ export function SubjectsView() {
                     </TableCell>
                     <TableCell>
                       {subj.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}

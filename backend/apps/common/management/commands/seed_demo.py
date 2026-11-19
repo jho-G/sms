@@ -11,6 +11,7 @@ Safe to re-run: every object is looked up before it is created.
     python manage.py seed_demo
     python manage.py seed_demo --flush   # wipe demo rows first
 """
+
 from datetime import date, timedelta
 from decimal import Decimal
 

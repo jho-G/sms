@@ -5,7 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { BookOpen, ClipboardCheck, Award, Users, Calendar } from "lucide-react";
 
 interface MyAssignmentsViewProps {
@@ -63,7 +69,10 @@ export function MyAssignmentsView({ onNavigate }: MyAssignmentsViewProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {assignments.map((asg) => (
-            <Card key={asg.id} className="hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col justify-between">
+            <Card
+              key={asg.id}
+              className="hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col justify-between"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
@@ -77,9 +86,7 @@ export function MyAssignmentsView({ onNavigate }: MyAssignmentsViewProps) {
                 </div>
                 <CardTitle className="text-lg mt-3">{asg.subject_name}</CardTitle>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary">
-                    Section {asg.section_name}
-                  </Badge>
+                  <Badge variant="secondary">Section {asg.section_name}</Badge>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {asg.academic_year_name || "Active Year"}

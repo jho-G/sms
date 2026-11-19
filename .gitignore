@@ -6,3 +6,6 @@ db.sqlite3
 node_modules/
 dist/
 build/
+backups/
+*.sql.gz
+*.sqlite3.gz

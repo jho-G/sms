@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.db.models import QuerySet
 
 from academics.models import (
@@ -11,7 +9,7 @@ from academics.models import (
 )
 
 
-def get_active_academic_year() -> Optional[AcademicYear]:
+def get_active_academic_year() -> AcademicYear | None:
     """
     Get the currently active academic year.
 
@@ -24,7 +22,7 @@ def get_active_academic_year() -> Optional[AcademicYear]:
         return None
 
 
-def get_academic_year_by_name(name: str) -> Optional[AcademicYear]:
+def get_academic_year_by_name(name: str) -> AcademicYear | None:
     """
     Get an academic year by its name (e.g., '2024-2025').
 
@@ -50,7 +48,7 @@ def list_academic_years() -> QuerySet[AcademicYear]:
     return AcademicYear.objects.all()
 
 
-def list_grade_levels(academic_year_id: Optional[str] = None) -> QuerySet[GradeLevel]:
+def list_grade_levels(academic_year_id: str | None = None) -> QuerySet[GradeLevel]:
     """
     Get all grade levels, optionally filtered by academic year.
 
@@ -82,7 +80,7 @@ def list_sections_by_grade(grade_id: str) -> QuerySet[ClassSection]:
     ).select_related("grade_level", "grade_level__academic_year")
 
 
-def get_section_by_id(section_id: str) -> Optional[ClassSection]:
+def get_section_by_id(section_id: str) -> ClassSection | None:
     """
     Get a specific class section by ID.
 
@@ -110,7 +108,7 @@ def list_subjects() -> QuerySet[Subject]:
     return Subject.objects.filter(is_active=True)
 
 
-def get_subject_by_code(code: str) -> Optional[Subject]:
+def get_subject_by_code(code: str) -> Subject | None:
     """
     Get a subject by its code (e.g., 'MATH101').
 
@@ -128,7 +126,7 @@ def get_subject_by_code(code: str) -> Optional[Subject]:
 
 def get_teacher_assignments(
     teacher_id: str,
-    academic_year_id: Optional[str] = None,
+    academic_year_id: str | None = None,
 ) -> QuerySet[SubjectAssignment]:
     """
     Get all subject assignments for a specific teacher.

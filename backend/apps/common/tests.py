@@ -4,6 +4,10 @@ Tests for the shared response envelope.
 Every endpoint must answer with `{"success", "data"}` so the browser client
 can unwrap a response without knowing which DRF base class produced it.
 """
+
+from unittest.mock import patch
+
+from django.db import OperationalError
 from django.urls import reverse
 
 from common.testing import SchoolTestCase
@@ -74,3 +78,34 @@ class EnvelopeRendererTests(SchoolTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertFalse(response.data["success"])
         self.assertIn("message", response.data["error"])
+
+
+class HealthCheckEndpointTests(SchoolTestCase):
+    """Test suite for /api/health/ container orchestration endpoint."""
+
+    def test_health_check_returns_healthy(self):
+        response = self.client.get("/api/health/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "healthy")
+        self.assertEqual(response.json()["database"], "connected")
+
+    @patch("django.db.connection.ensure_connection")
+    def test_health_check_returns_503_when_database_fails(self, mock_conn):
+        mock_conn.side_effect = OperationalError("Database connection lost")
+        response = self.client.get("/api/health/")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["status"], "unhealthy")
+
+
+class RequestIDMiddlewareTests(SchoolTestCase):
+    """Test suite for RequestID correlation tracking."""
+
+    def test_request_id_injected_in_response_header(self):
+        response = self.client.get("/api/health/")
+        self.assertTrue(response.has_header("X-Request-ID"))
+        self.assertTrue(len(response["X-Request-ID"]) > 10)
+
+    def test_incoming_request_id_preserved(self):
+        custom_id = "test-correlation-uuid-9999"
+        response = self.client.get("/api/health/", HTTP_X_REQUEST_ID=custom_id)
+        self.assertEqual(response["X-Request-ID"], custom_id)

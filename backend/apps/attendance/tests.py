@@ -1,6 +1,7 @@
 """
 Tests for attendance submission and read scoping.
 """
+
 from datetime import date
 
 from django.urls import reverse

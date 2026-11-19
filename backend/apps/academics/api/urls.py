@@ -34,7 +34,9 @@ urlpatterns = [
         ClassSectionByGradeView.as_view(),
         name="section-by-grade",
     ),
-    path("sections/<uuid:pk>/", ClassSectionDetailView.as_view(), name="section-detail"),
+    path(
+        "sections/<uuid:pk>/", ClassSectionDetailView.as_view(), name="section-detail"
+    ),
     # Subjects
     path("subjects/", SubjectListView.as_view(), name="subject-list"),
     path("subjects/<uuid:pk>/", SubjectDetailView.as_view(), name="subject-detail"),

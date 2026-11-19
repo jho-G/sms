@@ -93,10 +93,14 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
             Welcome back, {user?.first_name || "Scholar"}!
           </h1>
           <p className="mt-2 text-sm sm:text-base text-indigo-100 max-w-xl">
-            {isDirector && "Here is your school overview and active administration control center."}
-            {isTeacher && "Ready to record attendance or submit category marks for your classes."}
-            {isStudent && "Check your latest subject attendance rates and report card progress."}
-            {isParent && "Track your children's class attendance, assignments, and academic reports."}
+            {isDirector &&
+              "Here is your school overview and active administration control center."}
+            {isTeacher &&
+              "Ready to record attendance or submit category marks for your classes."}
+            {isStudent &&
+              "Check your latest subject attendance rates and report card progress."}
+            {isParent &&
+              "Track your children's class attendance, assignments, and academic reports."}
           </p>
         </div>
 
@@ -201,7 +205,10 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
           {isDirector && (
             <>
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("students")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("students")}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
@@ -213,14 +220,18 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      Enroll new students, assign class sections, and manage guardian links.
+                      Enroll new students, assign class sections, and manage guardian
+                      links.
                     </p>
                   </CardContent>
                 </Card>
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("academic-years")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("academic-years")}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="p-2 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
@@ -232,14 +243,18 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      Manage academic years, grade levels, sections, and teacher assignments.
+                      Manage academic years, grade levels, sections, and teacher
+                      assignments.
                     </p>
                   </CardContent>
                 </Card>
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("report-cards")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("report-cards")}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
@@ -251,7 +266,8 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      Calculate term GPA and view official school report cards per student.
+                      Calculate term GPA and view official school report cards per
+                      student.
                     </p>
                   </CardContent>
                 </Card>
@@ -262,28 +278,39 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
           {isTeacher && (
             <>
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("take-attendance")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("take-attendance")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 w-fit">
                       <CheckCircle2 className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">Take Daily Attendance</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      Take Daily Attendance
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
-                      Mark present, absent, late, or excused students with 1-click bulk save.
+                      Mark present, absent, late, or excused students with 1-click bulk
+                      save.
                     </p>
                   </CardContent>
                 </Card>
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("enter-grades")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("enter-grades")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 w-fit">
                       <Award className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">Submit Assessment Grades</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      Submit Assessment Grades
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -294,12 +321,17 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("my-assignments")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("my-assignments")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400 w-fit">
                       <BookOpen className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">Assigned Class Sections</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      Assigned Class Sections
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -314,12 +346,17 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
           {isStudent && (
             <>
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("my-report-card")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("my-report-card")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 w-fit">
                       <Award className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">My Academic Report Card</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      My Academic Report Card
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -330,7 +367,10 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("my-attendance")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("my-attendance")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 w-fit">
                       <Clock className="h-5 w-5" />
@@ -346,12 +386,17 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("my-grades")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("my-grades")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400 w-fit">
                       <GraduationCap className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">Recent Assessment Scores</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      Recent Assessment Scores
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -366,7 +411,10 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
           {isParent && (
             <>
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("children")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("children")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 w-fit">
                       <Users className="h-5 w-5" />
@@ -382,7 +430,10 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("child-attendance")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("child-attendance")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 w-fit">
                       <Clock className="h-5 w-5" />
@@ -398,12 +449,17 @@ export function HomeOverview({ onNavigate }: HomeOverviewProps) {
               </motion.div>
 
               <motion.div whileHover={{ y: -3 }}>
-                <Card className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all" onClick={() => onNavigate("child-grades")}>
+                <Card
+                  className="cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                  onClick={() => onNavigate("child-grades")}
+                >
                   <CardHeader>
                     <div className="p-2 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400 w-fit">
                       <Award className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-base mt-2">Academic Report Cards</CardTitle>
+                    <CardTitle className="text-base mt-2">
+                      Academic Report Cards
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">

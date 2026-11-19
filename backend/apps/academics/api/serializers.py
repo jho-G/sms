@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from academics.models import (
@@ -115,6 +116,7 @@ class ClassSectionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.IntegerField())
     def get_student_count(self, obj):
         """Number of active students currently enrolled in this section."""
         return obj.students.filter(is_active=True).count()
@@ -261,5 +263,7 @@ class SubjectAssignmentCreateSerializer(serializers.ModelSerializer):
     def validate_teacher(self, value):
         """Validate that the user is a teacher."""
         if value.role != "TEACHER":
-            raise serializers.ValidationError("Assigned user must have the TEACHER role.")
+            raise serializers.ValidationError(
+                "Assigned user must have the TEACHER role."
+            )
         return value

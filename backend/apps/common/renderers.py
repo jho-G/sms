@@ -1,6 +1,7 @@
 """
 Custom DRF renderers for the Student Management System.
 """
+
 from rest_framework.renderers import JSONRenderer
 
 from common.envelope import envelop

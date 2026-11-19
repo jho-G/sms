@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -23,7 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClipboardCheck, Check, Clock, AlertCircle, Save, CheckCircle2 } from "lucide-react";
+import {
+  ClipboardCheck,
+  Check,
+  Clock,
+  AlertCircle,
+  Save,
+  CheckCircle2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AttendanceEntry {
@@ -207,11 +220,7 @@ export function TakeAttendanceView() {
 
             <div className="space-y-1.5">
               <Label>Attendance Date</Label>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
 
             <div className="space-y-1.5 flex flex-col justify-end">
@@ -264,7 +273,10 @@ export function TakeAttendanceView() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <ClipboardCheck className="h-4 w-4 text-indigo-600" />
-            Class Roster - {currentAssignment ? `${currentAssignment.subject_name} (Section ${currentAssignment.section_name})` : "Select a Course"}
+            Class Roster -{" "}
+            {currentAssignment
+              ? `${currentAssignment.subject_name} (Section ${currentAssignment.section_name})`
+              : "Select a Course"}
           </CardTitle>
           <CardDescription>
             Click a status button for each student or enter remarks.
@@ -283,13 +295,19 @@ export function TakeAttendanceView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading section roster...
                   </TableCell>
                 </TableRow>
               ) : entries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No students found in this assigned class section.
                   </TableCell>
                 </TableRow>
@@ -306,7 +324,9 @@ export function TakeAttendanceView() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
-                        {(["PRESENT", "ABSENT", "LATE", "EXCUSED"] as AttendanceStatus[]).map((st) => {
+                        {(
+                          ["PRESENT", "ABSENT", "LATE", "EXCUSED"] as AttendanceStatus[]
+                        ).map((st) => {
                           const isSelected = entry.status === st;
                           return (
                             <button
@@ -315,11 +335,20 @@ export function TakeAttendanceView() {
                               onClick={() => handleStatusChange(entry.student_id, st)}
                               className={cn(
                                 "text-xs px-2.5 py-1 rounded-lg font-semibold border transition-all cursor-pointer",
-                                isSelected && st === "PRESENT" && "bg-emerald-600 text-white border-emerald-600 shadow-xs",
-                                isSelected && st === "ABSENT" && "bg-rose-600 text-white border-rose-600 shadow-xs",
-                                isSelected && st === "LATE" && "bg-amber-500 text-white border-amber-500 shadow-xs",
-                                isSelected && st === "EXCUSED" && "bg-sky-600 text-white border-sky-600 shadow-xs",
-                                !isSelected && "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                                isSelected &&
+                                  st === "PRESENT" &&
+                                  "bg-emerald-600 text-white border-emerald-600 shadow-xs",
+                                isSelected &&
+                                  st === "ABSENT" &&
+                                  "bg-rose-600 text-white border-rose-600 shadow-xs",
+                                isSelected &&
+                                  st === "LATE" &&
+                                  "bg-amber-500 text-white border-amber-500 shadow-xs",
+                                isSelected &&
+                                  st === "EXCUSED" &&
+                                  "bg-sky-600 text-white border-sky-600 shadow-xs",
+                                !isSelected &&
+                                  "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
                               )}
                             >
                               {st}
@@ -332,7 +361,9 @@ export function TakeAttendanceView() {
                       <Input
                         placeholder="Optional remarks..."
                         value={entry.remarks}
-                        onChange={(e) => handleRemarkChange(entry.student_id, e.target.value)}
+                        onChange={(e) =>
+                          handleRemarkChange(entry.student_id, e.target.value)
+                        }
                         className="h-8 text-xs max-w-xs"
                       />
                     </TableCell>

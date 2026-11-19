@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Optional
 
 from django.db.models import QuerySet
 
@@ -8,9 +7,9 @@ from attendance.models import Attendance
 
 def get_attendance_by_student(
     student_id: str,
-    subject_assignment_id: Optional[str] = None,
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
+    subject_assignment_id: str | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
 ) -> QuerySet[Attendance]:
     """
     Get attendance records for a specific student.
@@ -45,7 +44,7 @@ def get_attendance_by_student(
 
 def get_attendance_by_subject_assignment(
     subject_assignment_id: str,
-    target_date: Optional[date] = None,
+    target_date: date | None = None,
 ) -> QuerySet[Attendance]:
     """
     Get all attendance records for a subject assignment, optionally filtered by date.
@@ -73,7 +72,7 @@ def get_attendance_by_subject_assignment(
 
 def get_attendance_for_date(
     target_date: date,
-    subject_assignment_id: Optional[str] = None,
+    subject_assignment_id: str | None = None,
 ) -> QuerySet[Attendance]:
     """
     Get all attendance records for a specific date across all subject assignments.
@@ -103,7 +102,7 @@ def get_attendance_for_date(
 
 def get_absent_records_for_date(
     target_date: date,
-    subject_assignment_id: Optional[str] = None,
+    subject_assignment_id: str | None = None,
 ) -> QuerySet[Attendance]:
     """
     Get all ABSENT attendance records for a specific date.
@@ -133,7 +132,7 @@ def get_absent_records_for_date(
 
 def get_student_absence_count(
     student_id: str,
-    academic_year_id: Optional[str] = None,
+    academic_year_id: str | None = None,
 ) -> int:
     """
     Count the total number of absences for a student.
@@ -158,7 +157,9 @@ def get_student_absence_count(
     return queryset.count()
 
 
-def scope_attendance_to_user(queryset: QuerySet[Attendance], user) -> QuerySet[Attendance]:
+def scope_attendance_to_user(
+    queryset: QuerySet[Attendance], user
+) -> QuerySet[Attendance]:
     """
     Restrict an attendance queryset to the records ``user`` may read.
 

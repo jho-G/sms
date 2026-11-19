@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -50,7 +56,9 @@ export function AssessmentCategoriesView() {
     setIsLoading(true);
     try {
       const [catRes, asgRes] = await Promise.all([
-        api.getAssessmentCategories(selectedAssignmentId === "ALL" ? undefined : selectedAssignmentId),
+        api.getAssessmentCategories(
+          selectedAssignmentId === "ALL" ? undefined : selectedAssignmentId
+        ),
         api.getSubjectAssignments(),
       ]);
 
@@ -101,7 +109,10 @@ export function AssessmentCategoriesView() {
         setIsOpen(false);
         loadData();
       } else {
-        error(res.error?.message || "Failed to create category (Weight limit may be exceeded).");
+        error(
+          res.error?.message ||
+            "Failed to create category (Weight limit may be exceeded)."
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -119,7 +130,8 @@ export function AssessmentCategoriesView() {
             Assessment Categories
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Configure weighted grading formulas (Midterm, Final, Homework, Quizzes) up to 100%
+            Configure weighted grading formulas (Midterm, Final, Homework, Quizzes) up to
+            100%
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -154,7 +166,15 @@ export function AssessmentCategoriesView() {
                   Total Allocated Weight:
                 </span>
               </div>
-              <Badge variant={totalWeight === 100 ? "success" : totalWeight > 100 ? "destructive" : "warning"}>
+              <Badge
+                variant={
+                  totalWeight === 100
+                    ? "success"
+                    : totalWeight > 100
+                      ? "destructive"
+                      : "warning"
+                }
+              >
                 {totalWeight}% / 100%
               </Badge>
             </div>
@@ -165,8 +185,8 @@ export function AssessmentCategoriesView() {
                   totalWeight === 100
                     ? "bg-emerald-500"
                     : totalWeight > 100
-                    ? "bg-rose-500"
-                    : "bg-indigo-600"
+                      ? "bg-rose-500"
+                      : "bg-indigo-600"
                 }`}
                 style={{ width: `${Math.min(totalWeight, 100)}%` }}
               />
@@ -198,13 +218,19 @@ export function AssessmentCategoriesView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading assessment categories...
                   </TableCell>
                 </TableRow>
               ) : categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No categories configured for this subject assignment.
                   </TableCell>
                 </TableRow>

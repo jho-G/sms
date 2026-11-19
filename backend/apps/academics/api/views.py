@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -38,7 +39,6 @@ from academics.services import (
     create_grade_level,
     create_subject,
     deactivate_subject_assignment,
-    update_class_section,
 )
 from authentication.permissions import IsDirector, IsDirectorOrTeacherReadOnly
 
@@ -117,6 +117,11 @@ class AcademicYearDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AcademicYear.objects.all()
 
 
+@extend_schema(
+    tags=["Academics"],
+    summary="Get the currently active academic year",
+    responses={200: AcademicYearSerializer},
+)
 class ActiveAcademicYearView(APIView):
     """
     GET /api/academics/years/active/
@@ -475,6 +480,19 @@ class SubjectAssignmentDetailView(generics.RetrieveDestroyAPIView):
             )
 
 
+@extend_schema(
+    tags=["Academics"],
+    summary="Get all assignments for a teacher",
+    parameters=[
+        OpenApiParameter(
+            name="academic_year_id",
+            description="Optional Academic Year UUID filter",
+            required=False,
+            type=str,
+        )
+    ],
+    responses={200: SubjectAssignmentSerializer(many=True)},
+)
 class TeacherAssignmentsView(APIView):
     """
     GET /api/academics/assignments/teacher/<uuid>/
@@ -496,6 +514,11 @@ class TeacherAssignmentsView(APIView):
         )
 
 
+@extend_schema(
+    tags=["Academics"],
+    summary="Get all assignments for a class section",
+    responses={200: SubjectAssignmentSerializer(many=True)},
+)
 class SectionAssignmentsView(APIView):
     """
     GET /api/academics/assignments/section/<uuid>/

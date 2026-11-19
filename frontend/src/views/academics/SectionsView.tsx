@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -203,13 +209,19 @@ export function SectionsView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading class sections...
                   </TableCell>
                 </TableRow>
               ) : sections.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No sections found.
                   </TableCell>
                 </TableRow>
@@ -220,9 +232,7 @@ export function SectionsView() {
                       Section {sec.name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {sec.grade_level_name || "Grade"}
-                      </Badge>
+                      <Badge variant="secondary">{sec.grade_level_name || "Grade"}</Badge>
                     </TableCell>
                     <TableCell>{sec.room_number || "—"}</TableCell>
                     <TableCell>
@@ -232,7 +242,9 @@ export function SectionsView() {
                     </TableCell>
                     <TableCell>
                       {sec.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}

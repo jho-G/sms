@@ -1,18 +1,16 @@
-from typing import Optional
-
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 
 User = get_user_model()
 
 
-def get_user_by_id(user_id: str) -> Optional[User]:
+def get_user_by_id(user_id: str) -> User | None:
     """
     Get a user by their UUID.
-    
+
     Args:
         user_id: User's UUID as string
-    
+
     Returns:
         User instance or None if not found
     """
@@ -22,13 +20,13 @@ def get_user_by_id(user_id: str) -> Optional[User]:
         return None
 
 
-def get_user_by_email(email: str) -> Optional[User]:
+def get_user_by_email(email: str) -> User | None:
     """
     Get a user by their email address.
-    
+
     Args:
         email: User's email address
-    
+
     Returns:
         User instance or None if not found
     """
@@ -41,10 +39,10 @@ def get_user_by_email(email: str) -> Optional[User]:
 def get_users_by_role(role: str) -> QuerySet[User]:
     """
     Get all users with a specific role.
-    
+
     Args:
         role: User role (DIRECTOR, TEACHER, STUDENT, PARENT)
-    
+
     Returns:
         QuerySet of Users
     """
@@ -54,7 +52,7 @@ def get_users_by_role(role: str) -> QuerySet[User]:
 def get_active_users() -> QuerySet[User]:
     """
     Get all active users.
-    
+
     Returns:
         QuerySet of active Users
     """

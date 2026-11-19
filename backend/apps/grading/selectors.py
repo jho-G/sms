@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Optional
 
 from django.db.models import QuerySet
 
@@ -8,7 +7,7 @@ from grading.models import AssessmentCategory, Grade
 
 def get_student_grades(
     student_id: str,
-    subject_assignment_id: Optional[str] = None,
+    subject_assignment_id: str | None = None,
 ) -> QuerySet[Grade]:
     """
     Get all grades for a student, optionally filtered by subject assignment.
@@ -78,7 +77,7 @@ def get_assessment_categories_by_subject(
 def calculate_subject_total(
     student_id: str,
     subject_assignment_id: str,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Calculate the weighted total for a student in a specific subject assignment.
 
@@ -91,9 +90,13 @@ def calculate_subject_total(
 
     Returns None if no grades exist.
     """
-    categories = AssessmentCategory.objects.filter(
-        subject_assignment_id=subject_assignment_id,
-    ).prefetch_related("grades").order_by("name")
+    categories = (
+        AssessmentCategory.objects.filter(
+            subject_assignment_id=subject_assignment_id,
+        )
+        .prefetch_related("grades")
+        .order_by("name")
+    )
 
     if not categories.exists():
         return None
@@ -138,10 +141,8 @@ def calculate_subject_total(
         total_weight += category.weight
 
     return {
-        "subject_name": categories.first()
-        .subject_assignment.subject.name,
-        "subject_code": categories.first()
-        .subject_assignment.subject.code,
+        "subject_name": categories.first().subject_assignment.subject.name,
+        "subject_code": categories.first().subject_assignment.subject.code,
         "total_weighted_percentage": float(total_weighted_percentage),
         "total_weight": float(total_weight),
         "graded_weight": float(graded_weight),
@@ -153,7 +154,7 @@ def calculate_subject_total(
 def get_student_report_card(
     student_id: str,
     academic_year_id: str,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Calculate the overall weighted percentage and GPA across all subjects
     for a student in a given academic year.
@@ -212,9 +213,9 @@ def get_student_report_card(
     # Get student info
     from enrollment.models import StudentProfile
 
-    student = StudentProfile.objects.select_related(
-        "user", "section"
-    ).get(id=student_id)
+    student = StudentProfile.objects.select_related("user", "section").get(
+        id=student_id
+    )
 
     return {
         "student_name": student.user.get_full_name(),
@@ -334,7 +335,5 @@ def can_view_student_report(user, student_id: str) -> bool:
     if role == "STUDENT":
         return queryset.filter(user_id=user.id).exists()
     if role == "PARENT":
-        return queryset.filter(
-            guardian_links__parent__user_id=user.id
-        ).exists()
+        return queryset.filter(guardian_links__parent__user_id=user.id).exists()
     return False

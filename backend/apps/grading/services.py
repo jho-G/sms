@@ -1,11 +1,10 @@
 from decimal import Decimal
-from typing import List
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from grading.models import AssessmentCategory, Grade
 from common.utils import stringify_uuids
+from grading.models import AssessmentCategory, Grade
 
 
 @transaction.atomic
@@ -33,9 +32,7 @@ def create_assessment_category(
     from academics.models import SubjectAssignment
 
     try:
-        subject_assignment = SubjectAssignment.objects.get(
-            id=subject_assignment_id
-        )
+        subject_assignment = SubjectAssignment.objects.get(id=subject_assignment_id)
     except SubjectAssignment.DoesNotExist:
         raise ValidationError("Subject assignment not found.")
 
@@ -47,8 +44,7 @@ def create_assessment_category(
         name=name, subject_assignment=subject_assignment
     ).exists():
         raise ValidationError(
-            f"Assessment category '{name}' already exists "
-            f"for this subject assignment."
+            f"Assessment category '{name}' already exists for this subject assignment."
         )
 
     category = AssessmentCategory(
@@ -66,9 +62,9 @@ def create_assessment_category(
 @transaction.atomic
 def record_student_grades(
     assessment_category_id: str,
-    grade_list: List[dict],
+    grade_list: list[dict],
     recorded_by=None,
-) -> List[Grade]:
+) -> list[Grade]:
     """
     Bulk-record grades for multiple students in an assessment category.
 
@@ -91,9 +87,9 @@ def record_student_grades(
                          any grade entry fails validation.
     """
     try:
-        category = AssessmentCategory.objects.select_related(
-            "subject_assignment"
-        ).get(id=assessment_category_id)
+        category = AssessmentCategory.objects.select_related("subject_assignment").get(
+            id=assessment_category_id
+        )
     except AssessmentCategory.DoesNotExist:
         raise ValidationError("Assessment category not found.")
 
@@ -114,7 +110,7 @@ def record_student_grades(
             f"Student profiles not found or inactive: {', '.join(missing_ids)}"
         )
 
-    created_records: List[Grade] = []
+    created_records: list[Grade] = []
 
     for entry in grade_list:
         student_id = str(entry["student_id"])
@@ -126,7 +122,9 @@ def record_student_grades(
         if score < 0:
             raise ValidationError(f"Score cannot be negative for student {student_id}.")
         if max_score <= 0:
-            raise ValidationError(f"Max score must be greater than 0 for student {student_id}.")
+            raise ValidationError(
+                f"Max score must be greater than 0 for student {student_id}."
+            )
         if score > max_score:
             raise ValidationError(
                 f"Score ({score}) cannot exceed max score ({max_score}) "

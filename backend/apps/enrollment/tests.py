@@ -1,6 +1,7 @@
 """
 Tests for enrollment permissions and profile self-resolution.
 """
+
 from django.urls import reverse
 
 from common.testing import SchoolTestCase
@@ -22,9 +23,7 @@ class MyProfileTests(SchoolTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["data"]["role"], "STUDENT")
-        self.assertEqual(
-            response.data["data"]["profile"]["id"], str(self.student.id)
-        )
+        self.assertEqual(response.data["data"]["profile"]["id"], str(self.student.id))
 
     def test_parent_resolves_their_own_profile(self):
         self.login(self.parent_user)
@@ -32,9 +31,7 @@ class MyProfileTests(SchoolTestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data["data"]["profile"]["id"], str(self.parent.id)
-        )
+        self.assertEqual(response.data["data"]["profile"]["id"], str(self.parent.id))
 
     def test_director_has_no_domain_profile(self):
         self.login(self.director)

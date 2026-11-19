@@ -1,0 +1,52 @@
+[tool.ruff]
+# Target Python version
+target-version = "py312"
+
+# Same as Black line length
+line-length = 88
+indent-width = 4
+
+# Exclude typical build and venv directories
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    "__pycache__",
+    "venv",
+    "node_modules",
+    "*/migrations/*",
+    "staticfiles",
+    "media",
+    "backups",
+]
+
+[tool.ruff.lint]
+# Enable Pyflakes (F), pycodestyle (E, W), isort (I), pyupgrade (UP), flake8-bugbear (B), flake8-django (DJ)
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "DJ",
+]
+
+ignore = [
+    "E501", # Line length handled by formatter
+    "DJ001", # Avoid NullBooleanField deprecation notice
+    "B904", # Within an except clause, raise from err
+]
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "authentication", "academics", "enrollment", "attendance", "grading", "common"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

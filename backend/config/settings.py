@@ -5,6 +5,7 @@ Modular Monolith architecture with apps/ directory.
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -24,7 +25,11 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY", default="")
 if not SECRET_KEY:
-    if DEBUG or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true":
+    if (
+        DEBUG
+        or os.environ.get("CI") == "true"
+        or os.environ.get("GITHUB_ACTIONS") == "true"
+    ):
         SECRET_KEY = "django-insecure-local-development-only-do-not-deploy"
     else:
         raise ImproperlyConfigured(
@@ -54,6 +59,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
     # Local apps (common module)
     "common",
     "authentication",
@@ -65,6 +71,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "common.middleware.RequestIDMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -124,7 +131,9 @@ AUTH_USER_MODEL = "authentication.User"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -159,6 +168,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "auth_burst": "10/minute",
+        "auth_sustained": "100/hour",
+        "password_reset": "5/hour",
     },
     # Custom exception handler for consistent error responses
     "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
@@ -166,6 +178,44 @@ REST_FRAMEWORK = {
     "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S%z",
     "DATE_FORMAT": "%Y-%m-%d",
     "TIME_FORMAT": "%H:%M:%S",
+    # OpenAPI 3.0 Schema Generation
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# drf-spectacular (OpenAPI 3.0 Documentation)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Student Management System (SMS) API",
+    "DESCRIPTION": (
+        "Production-grade Modular Monolith REST API for Academic Management, "
+        "Enrollment, Attendance Tracking, and Grading."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/",
+    "TAGS": [
+        {
+            "name": "Authentication",
+            "description": "User registration, login, logout, and JWT tokens",
+        },
+        {
+            "name": "Academics",
+            "description": "Academic years, grade levels, class sections, and subjects",
+        },
+        {
+            "name": "Enrollment",
+            "description": "Student profiles, guardians, parents, and teacher records",
+        },
+        {
+            "name": "Attendance",
+            "description": "Daily student attendance tracking and records",
+        },
+        {
+            "name": "Grading",
+            "description": "Assessment categories, marks entry, and report cards",
+        },
+        {"name": "System", "description": "Health check and orchestration monitoring"},
+    ],
 }
 
 
@@ -235,7 +285,12 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "[{asctime}] {levelname} {name} {message}",
+            "format": "[{asctime}] [{levelname}] [{name}] {message}",
+            "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {
+            "format": "[{levelname}] {message}",
             "style": "{",
         },
     },
@@ -255,13 +310,21 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "sms": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
     },
 }
 
 
 # Simple JWT Settings
-from datetime import timedelta
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),

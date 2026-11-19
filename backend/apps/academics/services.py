@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -155,7 +153,7 @@ def create_subject(
     name: str,
     code: str,
     description: str = "",
-    grade_level_ids: Optional[list] = None,
+    grade_level_ids: list | None = None,
 ) -> Subject:
     """
     Create a new subject.
@@ -199,7 +197,7 @@ def assign_teacher_to_subject(
     teacher_id: str,
     subject_id: str,
     section_id: str,
-    academic_year_id: Optional[str] = None,
+    academic_year_id: str | None = None,
 ) -> SubjectAssignment:
     """
     Assign a teacher to a subject and section.
@@ -246,7 +244,9 @@ def assign_teacher_to_subject(
         raise ValidationError("Class section not found.")
 
     # Check availability
-    if not check_teacher_availability(teacher_id, subject_id, section_id, academic_year.id):
+    if not check_teacher_availability(
+        teacher_id, subject_id, section_id, academic_year.id
+    ):
         raise ValidationError(
             "This teacher is already assigned to this subject and section."
         )

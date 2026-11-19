@@ -94,9 +94,7 @@ export function RegisterView({ onSwitchToLogin }: RegisterViewProps) {
               required
               placeholder="Jane"
               value={formData.first_name}
-              onChange={(e) =>
-                setFormData({ ...formData, first_name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
@@ -108,9 +106,7 @@ export function RegisterView({ onSwitchToLogin }: RegisterViewProps) {
               required
               placeholder="Doe"
               value={formData.last_name}
-              onChange={(e) =>
-                setFormData({ ...formData, last_name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
             />
           </div>
         </div>
@@ -124,9 +120,7 @@ export function RegisterView({ onSwitchToLogin }: RegisterViewProps) {
             required
             placeholder="jdoe"
             value={formData.username}
-            onChange={(e) =>
-              setFormData({ ...formData, username: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
           />
         </div>
 
@@ -140,9 +134,7 @@ export function RegisterView({ onSwitchToLogin }: RegisterViewProps) {
             required
             placeholder="jane.doe@example.com"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
         </div>
 
@@ -176,9 +168,7 @@ export function RegisterView({ onSwitchToLogin }: RegisterViewProps) {
               required
               placeholder="••••••••"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">

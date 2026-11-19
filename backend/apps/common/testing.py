@@ -5,6 +5,7 @@ Builds a minimal but complete school -- one year, one section, one subject
 with a teacher assigned, one enrolled student and a linked parent -- so each
 test module can focus on the behaviour it is checking.
 """
+
 from datetime import date
 from decimal import Decimal
 
@@ -18,7 +19,12 @@ from academics.models import (
     Subject,
     SubjectAssignment,
 )
-from enrollment.models import ParentProfile, StudentGuardian, StudentProfile, TeacherProfile
+from enrollment.models import (
+    ParentProfile,
+    StudentGuardian,
+    StudentProfile,
+    TeacherProfile,
+)
 from grading.models import AssessmentCategory
 
 User = get_user_model()
@@ -47,7 +53,9 @@ class SchoolTestCase(APITestCase):
         cls.teacher = make_user("teacher@test.com", "TEACHER", first_name="Tariq")
         cls.other_teacher = make_user("teacher2@test.com", "TEACHER", first_name="Nia")
         cls.student_user = make_user("student@test.com", "STUDENT", first_name="Sam")
-        cls.other_student_user = make_user("student2@test.com", "STUDENT", first_name="Ola")
+        cls.other_student_user = make_user(
+            "student2@test.com", "STUDENT", first_name="Ola"
+        )
         cls.parent_user = make_user("parent@test.com", "PARENT", first_name="Priya")
 
         cls.year = AcademicYear.objects.create(

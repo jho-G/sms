@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import type { User, Role } from "@/types";
 import { api } from "@/services/api";
 
@@ -12,7 +18,10 @@ interface AuthContextType {
   isTeacher: boolean;
   isStudent: boolean;
   isParent: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
+  login: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<{ success: boolean; message?: string }>;
   register: (payload: any) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;

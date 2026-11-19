@@ -1,25 +1,28 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-xl border border-gray-200/80 bg-card shadow-xs dark:border-gray-800">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-));
+const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
+  ({ className, ...props }, ref) => (
+    <div className="relative w-full overflow-auto rounded-xl border border-gray-200/80 bg-card shadow-xs dark:border-gray-800">
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
+  )
+);
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b bg-gray-50/75 dark:bg-gray-900/50", className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn("[&_tr]:border-b bg-gray-50/75 dark:bg-gray-900/50", className)}
+    {...props}
+  />
 ));
 TableHeader.displayName = "TableHeader";
 
@@ -29,7 +32,10 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("[&_tr:last-child]:border-0 divide-y divide-gray-100 dark:divide-gray-800/60", className)}
+    className={cn(
+      "[&_tr:last-child]:border-0 divide-y divide-gray-100 dark:divide-gray-800/60",
+      className
+    )}
     {...props}
   />
 ));
@@ -41,10 +47,7 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
-      className
-    )}
+    className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
     {...props}
   />
 ));
@@ -67,7 +70,10 @@ TableRow.displayName = "TableRow";
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement> & { sortable?: boolean; sorted?: "asc" | "desc" | false }
+  React.ThHTMLAttributes<HTMLTableCellElement> & {
+    sortable?: boolean;
+    sorted?: "asc" | "desc" | false;
+  }
 >(({ className, sortable, sorted, children, ...props }, ref) => (
   <th
     ref={ref}

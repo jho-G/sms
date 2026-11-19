@@ -1,11 +1,23 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { api, extractList } from "@/services/api";
-import type { SubjectAssignment, Subject, ClassSection, TeacherProfile, AcademicYear } from "@/types";
+import type {
+  SubjectAssignment,
+  Subject,
+  ClassSection,
+  TeacherProfile,
+  AcademicYear,
+} from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -80,7 +92,10 @@ export function AssignmentsView() {
   }, [loadData]);
 
   const handleOpenCreate = () => {
-    if (teachers.length > 0 && !teacherId) setTeacherId(typeof teachers[0].user === "string" ? teachers[0].user : teachers[0].user.id);
+    if (teachers.length > 0 && !teacherId)
+      setTeacherId(
+        typeof teachers[0].user === "string" ? teachers[0].user : teachers[0].user.id
+      );
     if (subjects.length > 0 && !subjectId) setSubjectId(subjects[0].id);
     if (sections.length > 0 && !sectionId) setSectionId(sections[0].id);
     setIsOpen(true);
@@ -167,13 +182,19 @@ export function AssignmentsView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading assignments...
                   </TableCell>
                 </TableRow>
               ) : assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No teacher assignments found.
                   </TableCell>
                 </TableRow>
@@ -194,16 +215,16 @@ export function AssignmentsView() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        Section {asg.section_name}
-                      </Badge>
+                      <Badge variant="secondary">Section {asg.section_name}</Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {asg.academic_year_name || "Active Year"}
                     </TableCell>
                     <TableCell>
                       {asg.is_active ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success" dot>
+                          Active
+                        </Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}

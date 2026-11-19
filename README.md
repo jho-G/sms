@@ -64,6 +64,33 @@ A modern, production-ready, full-stack Student Management System engineered with
 | **Database** | PostgreSQL 16 (production container) / SQLite (zero-config local fallback) |
 | **Web Server / Proxy** | Nginx Alpine (Reverse proxy, Gzip compression, SPA fallback routing) |
 | **DevOps / CI/CD** | Docker, Docker Compose, GitHub Actions (CI, CD, Security), Dependabot |
+| **Quality & Tooling** | Ruff, ESLint, Prettier, Pre-Commit, Vitest, Factory Boy, drf-spectacular |
+
+---
+
+## 🛠️ Developer Tooling & Makefile Cheat Sheet
+
+The project includes a root `Makefile` providing 1-command shortcuts for all routine developer workflows:
+
+| Command | Action |
+|---|---|
+| `make dev` | Start development stack with live code reload (Django + Vite HMR + Postgres) |
+| `make dev-build` | Rebuild development containers from scratch and run |
+| `make prod` | Start production stack in background daemon mode |
+| `make down` | Stop all active containers and clean up networks |
+| `make test` | Run complete test suites across both backend and frontend |
+| `make test-backend` | Run Django unit test suite with Factory Boy fixtures |
+| `make test-frontend` | Run frontend unit & component tests using Vitest |
+| `make lint` | Run Ruff on Python code and ESLint on TypeScript code |
+| `make format` | Automatically format code with Ruff and Prettier |
+| `make check` | Run system check, TypeScript validation, and compose verification |
+| `make migrate` | Apply database migrations |
+| `make seed` | Populate database with realistic demo records |
+| `make seed-flush` | Wipe and re-seed clean database records |
+| `make backup-db` | Snapshot and compress active PostgreSQL database into `backups/` |
+| `make restore-db` | Interactive database restore from a `.sql.gz` snapshot |
+| `make schema` | Export OpenAPI 3.0 YAML schema (`schema.yml`) |
+| `make pre-commit` | Run all Git pre-commit hooks manually on all files |
 
 ---
 
@@ -92,6 +119,8 @@ Services will start in order with automatic health checks:
 
 - **Frontend App**: [http://localhost](http://localhost)
 - **Django Admin**: [http://localhost/admin/](http://localhost/admin/)
+- **API Swagger Documentation**: [http://localhost/api/docs/](http://localhost/api/docs/)
+- **API Redoc Documentation**: [http://localhost/api/docs/redoc/](http://localhost/api/docs/redoc/)
 - **API Health Check**: [http://localhost/api/health/](http://localhost/api/health/)
 
 To stop containers:
@@ -132,6 +161,20 @@ Key variables defined in `.env.docker.example`:
 | `SEED_DEMO` | Populate demo data on first container startup (`1` or `0`) | `1` |
 | `BACKEND_PORT` | Published host port for Django backend | `8000` |
 | `FRONTEND_PORT` | Published host port for Frontend / Nginx | `80` |
+
+---
+
+## 🔒 Security & API Rate Limiting
+
+To prevent credential stuffing and brute-force attacks, the API enforces tiered rate limiting via Django REST Framework:
+
+| Scope | Rate Limit | Target Endpoints | Behavior when Exceeded |
+|---|---|---|---|
+| **Auth Burst** | 10 requests / minute | `/api/auth/login/`, `/api/auth/register/` | HTTP 429 Too Many Requests (`Retry-After` header) |
+| **Auth Sustained** | 100 requests / hour | `/api/auth/login/`, `/api/auth/register/` | HTTP 429 Too Many Requests |
+| **Password Operations** | 5 requests / hour | `/api/auth/change-password/` | HTTP 429 Too Many Requests |
+| **Anonymous Global** | 100 requests / hour | Unauthenticated endpoints | HTTP 429 Too Many Requests |
+| **Authenticated User** | 1000 requests / hour | Authenticated session queries | HTTP 429 Too Many Requests |
 
 ---
 

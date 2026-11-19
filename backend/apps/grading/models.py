@@ -38,10 +38,7 @@ class AssessmentCategory(TimeStampedModel):
         verbose_name_plural = "assessment categories"
 
     def __str__(self):
-        return (
-            f"{self.name} ({self.weight}%) - "
-            f"{self.subject_assignment.subject.name}"
-        )
+        return f"{self.name} ({self.weight}%) - {self.subject_assignment.subject.name}"
 
     def clean(self):
         """Validate weight is between 0 and 100, and total doesn't exceed 100%."""

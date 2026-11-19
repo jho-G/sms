@@ -1,6 +1,7 @@
 """
 Tests for mark entry, report cards and grade read scoping.
 """
+
 from decimal import Decimal
 
 from django.urls import reverse

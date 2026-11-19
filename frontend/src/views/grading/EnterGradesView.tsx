@@ -1,13 +1,24 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { api, extractList } from "@/services/api";
-import type { SubjectAssignment, AssessmentCategory, StudentProfile, Grade } from "@/types";
+import type {
+  SubjectAssignment,
+  AssessmentCategory,
+  StudentProfile,
+  Grade,
+} from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -187,7 +198,8 @@ export function EnterGradesView() {
             Enter Assessment Grades
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Submit marks and remarks per assessment category with automatic percentage weighting
+            Submit marks and remarks per assessment category with automatic percentage
+            weighting
           </p>
         </div>
 
@@ -227,10 +239,7 @@ export function EnterGradesView() {
 
             <div className="space-y-1.5">
               <Label>Assessment Category</Label>
-              <Select
-                value={selectedCategoryId}
-                onValueChange={setSelectedCategoryId}
-              >
+              <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose category" />
                 </SelectTrigger>
@@ -254,7 +263,10 @@ export function EnterGradesView() {
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Award className="h-4 w-4 text-indigo-600" />
-                Mark Sheet — {activeCategory ? `${activeCategory.name} (${activeCategory.weight}% Weight)` : "Select Category"}
+                Mark Sheet —{" "}
+                {activeCategory
+                  ? `${activeCategory.name} (${activeCategory.weight}% Weight)`
+                  : "Select Category"}
               </CardTitle>
               <CardDescription>
                 Raw scores are automatically computed into percentage and weighted points.
@@ -277,25 +289,35 @@ export function EnterGradesView() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Loading student marks...
                   </TableCell>
                 </TableRow>
               ) : categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No assessment categories configured for this subject assignment yet.
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No students in this class section.
                   </TableCell>
                 </TableRow>
               ) : (
                 rows.map((row) => {
-                  const pct = row.max_score > 0 ? Math.round((row.score / row.max_score) * 100) : 0;
+                  const pct =
+                    row.max_score > 0 ? Math.round((row.score / row.max_score) * 100) : 0;
                   return (
                     <TableRow key={row.student_id}>
                       <TableCell className="font-semibold text-gray-900 dark:text-gray-100">
@@ -312,7 +334,12 @@ export function EnterGradesView() {
                           min="0"
                           max={row.max_score}
                           value={row.score}
-                          onChange={(e) => handleScoreChange(row.student_id, parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleScoreChange(
+                              row.student_id,
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
                           className="h-8 text-sm"
                         />
                       </TableCell>
@@ -321,20 +348,27 @@ export function EnterGradesView() {
                           type="number"
                           min="1"
                           value={row.max_score}
-                          onChange={(e) => handleMaxScoreChange(row.student_id, parseFloat(e.target.value) || 100)}
+                          onChange={(e) =>
+                            handleMaxScoreChange(
+                              row.student_id,
+                              parseFloat(e.target.value) || 100
+                            )
+                          }
                           className="h-8 text-sm"
                         />
                       </TableCell>
                       <TableCell>
-                        <span className={`font-semibold text-xs px-2 py-0.5 rounded-full ${
-                          pct >= 90
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                            : pct >= 75
-                            ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
-                            : pct >= 60
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                            : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                        }`}>
+                        <span
+                          className={`font-semibold text-xs px-2 py-0.5 rounded-full ${
+                            pct >= 90
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                              : pct >= 75
+                                ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                                : pct >= 60
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                  : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                          }`}
+                        >
                           {pct}%
                         </span>
                       </TableCell>
@@ -342,7 +376,9 @@ export function EnterGradesView() {
                         <Input
                           placeholder="Optional feedback..."
                           value={row.remarks}
-                          onChange={(e) => handleRemarkChange(row.student_id, e.target.value)}
+                          onChange={(e) =>
+                            handleRemarkChange(row.student_id, e.target.value)
+                          }
                           className="h-8 text-xs max-w-xs"
                         />
                       </TableCell>
