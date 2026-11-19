@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework import generics, status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,6 +19,11 @@ from authentication.services import change_password
 User = get_user_model()
 
 
+@extend_schema(
+    tags=["Authentication"],
+    summary="Register a new user account",
+    description="Registers a user. Returns tokens on self-registration.",
+)
 class RegisterView(generics.CreateAPIView):
     """
     POST /api/auth/register/
@@ -57,6 +63,33 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+@extend_schema(
+    tags=["Authentication"],
+    summary="Authenticate user and issue JWT tokens",
+    request=LoginSerializer,
+    responses={
+        200: inline_serializer(
+            name="LoginResponse",
+            fields={
+                "success": serializers.BooleanField(),
+                "message": serializers.CharField(),
+                "data": inline_serializer(
+                    name="LoginData",
+                    fields={
+                        "user": UserSerializer(),
+                        "tokens": inline_serializer(
+                            name="TokenPair",
+                            fields={
+                                "access": serializers.CharField(),
+                                "refresh": serializers.CharField(),
+                            },
+                        ),
+                    },
+                ),
+            },
+        )
+    },
+)
 class LoginView(APIView):
     """
     POST /api/auth/login/
@@ -121,6 +154,20 @@ class LoginView(APIView):
         )
 
 
+@extend_schema(
+    tags=["Authentication"],
+    summary="Log out and blacklist refresh token",
+    request=inline_serializer(
+        name="LogoutRequest",
+        fields={"refresh": serializers.CharField(help_text="JWT refresh token to invalidate")},
+    ),
+    responses={
+        200: inline_serializer(
+            name="LogoutResponse",
+            fields={"success": serializers.BooleanField(), "message": serializers.CharField()},
+        )
+    },
+)
 class LogoutView(APIView):
     """
     POST /api/auth/logout/
@@ -156,6 +203,10 @@ class LogoutView(APIView):
             )
 
 
+@extend_schema(
+    tags=["Authentication"],
+    summary="Retrieve or update current user profile",
+)
 class MeView(generics.RetrieveUpdateAPIView):
     """
     GET/PUT/PATCH /api/auth/me/
@@ -196,6 +247,10 @@ class MeView(generics.RetrieveUpdateAPIView):
         )
 
 
+@extend_schema(
+    tags=["Authentication"],
+    summary="Change user account password",
+)
 class ChangePasswordView(APIView):
     """
     POST /api/auth/change-password/
