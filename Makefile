@@ -50,6 +50,33 @@ logs-backend: ## Follow logs specifically from backend container
 logs-frontend: ## Follow logs specifically from frontend container
 	$(COMPOSE_DEV) logs -f frontend
 
+##@ 🗄️ Database & Django Operations
+migrate: ## Run Django database migrations
+	@echo -e "$(GREEN)Applying database migrations...$(RESET)"
+	$(COMPOSE_DEV) exec backend python manage.py migrate || ./venv/bin/python backend/manage.py migrate
+
+makemigrations: ## Detect and create new database migration files
+	@echo -e "$(GREEN)Creating new migration files...$(RESET)"
+	$(COMPOSE_DEV) exec backend python manage.py makemigrations || ./venv/bin/python backend/manage.py makemigrations
+
+seed: ## Seed database with demo school records
+	@echo -e "$(GREEN)Seeding initial demo data...$(RESET)"
+	$(COMPOSE_DEV) exec backend python manage.py seed_demo || ./venv/bin/python backend/manage.py seed_demo
+
+seed-flush: ## Wipe existing demo data and re-seed clean records
+	@echo -e "$(YELLOW)Wiping and re-seeding demo data...$(RESET)"
+	$(COMPOSE_DEV) exec backend python manage.py seed_demo --flush || ./venv/bin/python backend/manage.py seed_demo --flush
+
+superuser: ## Create an interactive Django admin superuser
+	@echo -e "$(GREEN)Creating Django superuser...$(RESET)"
+	$(COMPOSE_DEV) exec backend python manage.py createsuperuser || ./venv/bin/python backend/manage.py createsuperuser
+
+shell: ## Open interactive Django Python shell
+	$(COMPOSE_DEV) exec backend python manage.py shell || ./venv/bin/python backend/manage.py shell
+
+dbshell: ## Open interactive database CLI shell
+	$(COMPOSE_DEV) exec backend python manage.py dbshell || ./venv/bin/python backend/manage.py dbshell
+
 ##@ ℹ️ General
 help: ## Display this help dialog
 	@echo -e "$(BLUE)Student Management System - Developer Commands$(RESET)"
