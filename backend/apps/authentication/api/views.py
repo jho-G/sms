@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -22,6 +24,7 @@ from common.throttling import (
 )
 
 User = get_user_model()
+logger = logging.getLogger("sms.auth")
 
 
 @extend_schema(
@@ -121,6 +124,11 @@ class LoginView(APIView):
         )
 
         if user is None:
+            logger.warning(
+                "Authentication failure for email '%s' from IP %s",
+                email,
+                request.META.get("REMOTE_ADDR"),
+            )
             return Response(
                 {
                     "success": False,
@@ -132,6 +140,11 @@ class LoginView(APIView):
             )
 
         if not user.is_active:
+            logger.warning(
+                "Authentication denied for deactivated account '%s' (IP %s)",
+                email,
+                request.META.get("REMOTE_ADDR"),
+            )
             return Response(
                 {
                     "success": False,
@@ -142,6 +155,12 @@ class LoginView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        logger.info(
+            "User '%s' authenticated successfully (role: %s, IP: %s)",
+            email,
+            user.role,
+            request.META.get("REMOTE_ADDR"),
+        )
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
 
