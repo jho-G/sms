@@ -112,3 +112,49 @@ class SubjectAssignmentFactory(factory.django.DjangoModelFactory):
     subject = factory.SubFactory(SubjectFactory)
     section = factory.SubFactory(ClassSectionFactory)
     academic_year = factory.SubFactory(AcademicYearFactory)
+
+
+# ---------------------------------------------------------------------------
+# Enrollment Factories
+# ---------------------------------------------------------------------------
+class StudentProfileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "enrollment.StudentProfile"
+
+    user = factory.SubFactory(StudentUserFactory)
+    student_id = factory.Sequence(lambda n: f"STU-2026-{n+1:04d}")
+    section = factory.SubFactory(ClassSectionFactory)
+    date_of_birth = factory.LazyFunction(lambda: date(2010, 5, 20))
+    guardian_contact = "+15550199"
+    is_active = True
+
+
+class TeacherProfileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "enrollment.TeacherProfile"
+
+    user = factory.SubFactory(TeacherUserFactory)
+    employee_id = factory.Sequence(lambda n: f"TCH-2026-{n+1:03d}")
+    department = "Science"
+    specialization = "Mathematics"
+    qualification = "M.Sc."
+    is_active = True
+
+
+class ParentProfileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "enrollment.ParentProfile"
+
+    user = factory.SubFactory(ParentUserFactory)
+    occupation = "Software Engineer"
+    secondary_phone = "+15550188"
+
+
+class StudentGuardianFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "enrollment.StudentGuardian"
+
+    parent = factory.SubFactory(ParentProfileFactory)
+    student = factory.SubFactory(StudentProfileFactory)
+    relationship = "MOTHER"
+    is_primary = True
