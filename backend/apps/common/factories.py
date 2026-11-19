@@ -1,0 +1,58 @@
+"""
+Factory Boy definitions for realistic testing fixtures across the system.
+"""
+import factory
+from django.contrib.auth import get_user_model
+from faker import Faker
+
+fake = Faker()
+User = get_user_model()
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    """Factory generating realistic User instances."""
+
+    class Meta:
+        model = User
+        django_get_or_create = ("email",)
+
+    email = factory.Sequence(lambda n: f"user{n}@example.com")
+    username = factory.Sequence(lambda n: f"user_{n}")
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
+    role = "STUDENT"
+    is_active = True
+    is_email_verified = True
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        password = kwargs.pop("password", "TestPassword123!")
+        user = super()._create(model_class, *args, **kwargs)
+        user.set_password(password)
+        user.save()
+        return user
+
+
+class DirectorFactory(UserFactory):
+    """Convenience factory for director users."""
+
+    role = "DIRECTOR"
+    is_staff = True
+
+
+class TeacherUserFactory(UserFactory):
+    """Convenience factory for teacher users."""
+
+    role = "TEACHER"
+
+
+class StudentUserFactory(UserFactory):
+    """Convenience factory for student users."""
+
+    role = "STUDENT"
+
+
+class ParentUserFactory(UserFactory):
+    """Convenience factory for parent users."""
+
+    role = "PARENT"
