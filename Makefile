@@ -77,6 +77,13 @@ shell: ## Open interactive Django Python shell
 dbshell: ## Open interactive database CLI shell
 	$(COMPOSE_DEV) exec backend python manage.py dbshell || ./venv/bin/python backend/manage.py dbshell
 
+##@ 💾 Backup & Disaster Recovery
+backup-db: ## Snapshot and compress PostgreSQL database to backups/
+	@./scripts/backup-db.sh
+
+restore-db: ## Restore a database backup (Usage: make restore-db FILE=backups/sms_backup_...)
+	@./scripts/restore-db.sh $(FILE)
+
 ##@ 🧪 Testing & Code Quality
 test: test-backend test-frontend ## Run all test suites across backend and frontend
 
