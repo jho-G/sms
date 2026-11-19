@@ -4,6 +4,7 @@ Factory Boy definitions for realistic testing fixtures across the system.
 import factory
 from django.contrib.auth import get_user_model
 from datetime import date
+from decimal import Decimal
 from faker import Faker
 
 fake = Faker()
@@ -158,3 +159,39 @@ class StudentGuardianFactory(factory.django.DjangoModelFactory):
     student = factory.SubFactory(StudentProfileFactory)
     relationship = "MOTHER"
     is_primary = True
+
+
+# ---------------------------------------------------------------------------
+# Attendance & Grading Factories
+# ---------------------------------------------------------------------------
+class AttendanceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "attendance.Attendance"
+
+    student = factory.SubFactory(StudentProfileFactory)
+    subject_assignment = factory.SubFactory(SubjectAssignmentFactory)
+    date = factory.LazyFunction(date.today)
+    status = "PRESENT"
+    remarks = "On time"
+
+
+class AssessmentCategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "grading.AssessmentCategory"
+
+    name = factory.Sequence(lambda n: f"Assessment {n+1}")
+    subject_assignment = factory.SubFactory(SubjectAssignmentFactory)
+    weight = Decimal("25.00")
+    description = "Test assessment category"
+
+
+class GradeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "grading.Grade"
+
+    student = factory.SubFactory(StudentProfileFactory)
+    assessment_category = factory.SubFactory(AssessmentCategoryFactory)
+    score = Decimal("85.00")
+    max_score = Decimal("100.00")
+    remarks = "Good performance"
+    recorded_by = factory.SubFactory(TeacherUserFactory)
