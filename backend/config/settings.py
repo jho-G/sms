@@ -167,6 +167,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "auth_burst": "10/minute",
+        "auth_sustained": "100/hour",
+        "password_reset": "5/hour",
     },
     # Custom exception handler for consistent error responses
     "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
