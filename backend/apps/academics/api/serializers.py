@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from academics.models import (
@@ -115,6 +116,7 @@ class ClassSectionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(serializers.IntegerField())
     def get_student_count(self, obj):
         """Number of active students currently enrolled in this section."""
         return obj.students.filter(is_active=True).count()
