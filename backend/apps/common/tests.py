@@ -95,3 +95,17 @@ class HealthCheckEndpointTests(SchoolTestCase):
         response = self.client.get("/api/health/")
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["status"], "unhealthy")
+
+
+class RequestIDMiddlewareTests(SchoolTestCase):
+    """Test suite for RequestID correlation tracking."""
+
+    def test_request_id_injected_in_response_header(self):
+        response = self.client.get("/api/health/")
+        self.assertTrue(response.has_header("X-Request-ID"))
+        self.assertTrue(len(response["X-Request-ID"]) > 10)
+
+    def test_incoming_request_id_preserved(self):
+        custom_id = "test-correlation-uuid-9999"
+        response = self.client.get("/api/health/", HTTP_X_REQUEST_ID=custom_id)
+        self.assertEqual(response["X-Request-ID"], custom_id)
