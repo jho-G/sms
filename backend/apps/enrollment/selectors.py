@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.db.models import QuerySet
 
 from enrollment.models import (
@@ -10,7 +8,7 @@ from enrollment.models import (
 )
 
 
-def get_student_profile_by_user(user_id: str) -> Optional[StudentProfile]:
+def get_student_profile_by_user(user_id: str) -> StudentProfile | None:
     """
     Get a student profile by user UUID.
 
@@ -28,7 +26,7 @@ def get_student_profile_by_user(user_id: str) -> Optional[StudentProfile]:
         return None
 
 
-def get_student_profile_by_student_id(student_id: str) -> Optional[StudentProfile]:
+def get_student_profile_by_student_id(student_id: str) -> StudentProfile | None:
     """
     Get a student profile by institutional student ID.
 
@@ -46,7 +44,7 @@ def get_student_profile_by_student_id(student_id: str) -> Optional[StudentProfil
         return None
 
 
-def get_teacher_profile_by_user(user_id: str) -> Optional[TeacherProfile]:
+def get_teacher_profile_by_user(user_id: str) -> TeacherProfile | None:
     """
     Get a teacher profile by user UUID.
 
@@ -62,7 +60,7 @@ def get_teacher_profile_by_user(user_id: str) -> Optional[TeacherProfile]:
         return None
 
 
-def get_parent_profile_by_user(user_id: str) -> Optional[ParentProfile]:
+def get_parent_profile_by_user(user_id: str) -> ParentProfile | None:
     """
     Get a parent profile by user UUID.
 
@@ -135,7 +133,9 @@ def list_active_student_profiles() -> QuerySet[StudentProfile]:
     Returns:
         QuerySet of StudentProfile
     """
-    return StudentProfile.objects.filter(is_active=True).select_related("user", "section")
+    return StudentProfile.objects.filter(is_active=True).select_related(
+        "user", "section"
+    )
 
 
 def list_active_teacher_profiles() -> QuerySet[TeacherProfile]:

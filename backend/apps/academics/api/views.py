@@ -38,7 +38,6 @@ from academics.services import (
     create_grade_level,
     create_subject,
     deactivate_subject_assignment,
-    update_class_section,
 )
 from authentication.permissions import IsDirector, IsDirectorOrTeacherReadOnly
 

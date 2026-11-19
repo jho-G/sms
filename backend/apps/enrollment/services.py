@@ -9,11 +9,9 @@ from enrollment.models import (
     TeacherProfile,
 )
 from enrollment.selectors import (
-    get_parent_children,
     get_parent_profile_by_user,
-    get_student_guardians,
-    get_student_profile_by_user,
     get_student_profile_by_student_id,
+    get_student_profile_by_user,
     get_teacher_profile_by_user,
 )
 
@@ -61,9 +59,7 @@ def register_student(
 
     # Check duplicate student_id
     if get_student_profile_by_student_id(student_id):
-        raise ValidationError(
-            f"Student ID '{student_id}' is already in use."
-        )
+        raise ValidationError(f"Student ID '{student_id}' is already in use.")
 
     # Validate section exists
     from academics.models import ClassSection
@@ -123,9 +119,7 @@ def register_teacher(
         raise ValidationError("A teacher profile already exists for this user.")
 
     if TeacherProfile.objects.filter(employee_id=employee_id).exists():
-        raise ValidationError(
-            f"Employee ID '{employee_id}' is already in use."
-        )
+        raise ValidationError(f"Employee ID '{employee_id}' is already in use.")
 
     profile = TeacherProfile(
         user=user,
@@ -221,9 +215,7 @@ def link_parent_to_student(
 
     # Check for duplicate link
     if StudentGuardian.objects.filter(parent=parent, student=student).exists():
-        raise ValidationError(
-            "This parent is already linked to this student."
-        )
+        raise ValidationError("This parent is already linked to this student.")
 
     # Validate relationship choices
     valid_relationships = [c[0] for c in StudentGuardian.Relationship.choices]

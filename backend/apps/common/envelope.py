@@ -20,10 +20,11 @@ Payloads that already carry ``success`` (views that build the envelope by
 hand, and ``common.exceptions.custom_exception_handler``) are returned
 untouched so their ``message``/``error`` keys survive.
 """
-from typing import Any, Optional
+
+from typing import Any
 
 
-def envelop(data: Any, status_code: int = 200) -> Optional[Any]:
+def envelop(data: Any, status_code: int = 200) -> Any | None:
     """Wrap ``data`` in the standard envelope unless it already has one."""
     if data is None:
         return None

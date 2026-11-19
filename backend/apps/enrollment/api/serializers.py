@@ -12,9 +12,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     """Read-only serializer for StudentProfile with nested user info."""
 
     user_email = serializers.CharField(source="user.email", read_only=True)
-    user_full_name = serializers.CharField(
-        source="user.get_full_name", read_only=True
-    )
+    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True)
     section_name = serializers.CharField(
         source="section.__str__", read_only=True, default=None
     )
@@ -74,9 +72,7 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
     """Read-only serializer for TeacherProfile with nested user info."""
 
     user_email = serializers.CharField(source="user.email", read_only=True)
-    user_full_name = serializers.CharField(
-        source="user.get_full_name", read_only=True
-    )
+    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True)
 
     class Meta:
         model = TeacherProfile
@@ -130,9 +126,7 @@ class ParentProfileSerializer(serializers.ModelSerializer):
     """Read-only serializer for ParentProfile with nested user info."""
 
     user_email = serializers.CharField(source="user.email", read_only=True)
-    user_full_name = serializers.CharField(
-        source="user.get_full_name", read_only=True
-    )
+    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True)
 
     class Meta:
         model = ParentProfile
@@ -181,9 +175,7 @@ class StudentGuardianSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source="student.user.get_full_name", read_only=True
     )
-    student_id_code = serializers.CharField(
-        source="student.student_id", read_only=True
-    )
+    student_id_code = serializers.CharField(source="student.student_id", read_only=True)
 
     class Meta:
         model = StudentGuardian
@@ -228,9 +220,7 @@ class StudentGuardianCreateSerializer(serializers.ModelSerializer):
             )
 
         if parent and student:
-            if StudentGuardian.objects.filter(
-                parent=parent, student=student
-            ).exists():
+            if StudentGuardian.objects.filter(parent=parent, student=student).exists():
                 raise serializers.ValidationError(
                     "This parent is already linked to this student."
                 )

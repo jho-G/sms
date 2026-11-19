@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from authentication.permissions import IsDirector, IsDirectorOrTeacher, IsTeacher
+from authentication.permissions import IsDirectorOrTeacher, IsTeacher
 from grading.api.serializers import (
     AssessmentCategoryCreateSerializer,
     AssessmentCategorySerializer,
@@ -17,9 +17,6 @@ from grading.models import AssessmentCategory, Grade
 from grading.selectors import (
     calculate_subject_total,
     can_view_student_report,
-    get_assessment_categories_by_subject,
-    get_grades_by_assessment_category,
-    get_student_grades,
     get_student_report_card,
     scope_categories_to_user,
     scope_grades_to_user,
@@ -29,7 +26,6 @@ from grading.services import (
     record_single_grade,
     record_student_grades,
 )
-
 
 # ---------------------------------------------------------------------------
 # Assessment Category Views
@@ -55,13 +51,9 @@ class AssessmentCategoryListView(generics.ListCreateAPIView):
         queryset = scope_categories_to_user(queryset, self.request.user)
 
         # Filter by subject assignment
-        subject_assignment_id = self.request.query_params.get(
-            "subject_assignment_id"
-        )
+        subject_assignment_id = self.request.query_params.get("subject_assignment_id")
         if subject_assignment_id:
-            queryset = queryset.filter(
-                subject_assignment_id=subject_assignment_id
-            )
+            queryset = queryset.filter(subject_assignment_id=subject_assignment_id)
 
         return queryset
 
@@ -216,10 +208,7 @@ class GradeRecordView(APIView):
 
         data = serializer.validated_data
 
-        if (
-            data["assessment_category"].subject_assignment.teacher_id
-            != request.user.id
-        ):
+        if data["assessment_category"].subject_assignment.teacher_id != request.user.id:
             return Response(
                 {
                     "success": False,
@@ -342,7 +331,9 @@ class SubjectTotalView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": {"message": "No assessment categories found for this subject."},
+                    "error": {
+                        "message": "No assessment categories found for this subject."
+                    },
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -389,7 +380,9 @@ class ReportCardView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": {"message": "No grading data found for this student and academic year."},
+                    "error": {
+                        "message": "No grading data found for this student and academic year."
+                    },
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -434,7 +427,9 @@ class MyReportCardView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": {"message": "No grading data found for this academic year."},
+                    "error": {
+                        "message": "No grading data found for this academic year."
+                    },
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )

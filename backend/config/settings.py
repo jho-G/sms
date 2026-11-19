@@ -5,6 +5,7 @@ Modular Monolith architecture with apps/ directory.
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -24,7 +25,11 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY", default="")
 if not SECRET_KEY:
-    if DEBUG or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true":
+    if (
+        DEBUG
+        or os.environ.get("CI") == "true"
+        or os.environ.get("GITHUB_ACTIONS") == "true"
+    ):
         SECRET_KEY = "django-insecure-local-development-only-do-not-deploy"
     else:
         raise ImproperlyConfigured(
@@ -124,7 +129,9 @@ AUTH_USER_MODEL = "authentication.User"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -260,8 +267,6 @@ LOGGING = {
 
 
 # Simple JWT Settings
-from datetime import timedelta
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),

@@ -147,6 +147,4 @@ class IsDirectorOrGuardianParticipant(BasePermission):
         if role == "TEACHER":
             return True
         user_id = request.user.id
-        return (
-            obj.parent.user_id == user_id or obj.student.user_id == user_id
-        )
+        return obj.parent.user_id == user_id or obj.student.user_id == user_id

@@ -183,9 +183,7 @@ class SubjectAssignment(TimeStampedModel):
         verbose_name_plural = "subject assignments"
 
     def __str__(self):
-        return (
-            f"{self.teacher.get_full_name()} - {self.subject.name} - {self.section}"
-        )
+        return f"{self.teacher.get_full_name()} - {self.subject.name} - {self.section}"
 
     def clean(self):
         """Validate that the teacher has the TEACHER role."""

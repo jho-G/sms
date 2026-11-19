@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from attendance.models import Attendance
 
-
 # ---------------------------------------------------------------------------
 # Read Serializer
 # ---------------------------------------------------------------------------
+
 
 class AttendanceSerializer(serializers.ModelSerializer):
     """Read-only serializer for Attendance with nested related info."""
@@ -13,9 +13,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source="student.user.get_full_name", read_only=True
     )
-    student_code = serializers.CharField(
-        source="student.student_id", read_only=True
-    )
+    student_code = serializers.CharField(source="student.student_id", read_only=True)
     subject_name = serializers.CharField(
         source="subject_assignment.subject.name", read_only=True
     )
@@ -55,6 +53,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
 # Single Create / Update Serializer
 # ---------------------------------------------------------------------------
 
+
 class AttendanceCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating or updating a single attendance record."""
 
@@ -80,6 +79,7 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 # Bulk Submit Serializer (teacher daily / subject attendance log)
 # ---------------------------------------------------------------------------
+
 
 class AttendanceRecordInputSerializer(serializers.Serializer):
     """Single item inside a bulk attendance payload."""

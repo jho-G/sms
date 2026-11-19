@@ -9,22 +9,16 @@ from rest_framework.views import APIView
 from academics.models import SubjectAssignment
 from attendance.api.serializers import (
     AttendanceCreateSerializer,
-    AttendanceRecordInputSerializer,
     AttendanceSerializer,
     BulkAttendanceSubmitSerializer,
 )
 from attendance.models import Attendance
 from attendance.selectors import (
-    get_absent_records_for_date,
-    get_attendance_by_student,
     get_attendance_by_subject_assignment,
-    get_attendance_for_date,
-    get_student_absence_count,
     scope_attendance_to_user,
 )
 from attendance.services import bulk_mark_attendance, mark_single_attendance
-from authentication.permissions import IsDirector, IsTeacher, IsDirectorOrTeacher
-
+from authentication.permissions import IsDirectorOrTeacher, IsTeacher
 
 # ---------------------------------------------------------------------------
 # Attendance List & Detail Views
@@ -61,13 +55,9 @@ class AttendanceListView(generics.ListAPIView):
             queryset = queryset.filter(student_id=student_id)
 
         # Filter by subject assignment
-        subject_assignment_id = self.request.query_params.get(
-            "subject_assignment_id"
-        )
+        subject_assignment_id = self.request.query_params.get("subject_assignment_id")
         if subject_assignment_id:
-            queryset = queryset.filter(
-                subject_assignment_id=subject_assignment_id
-            )
+            queryset = queryset.filter(subject_assignment_id=subject_assignment_id)
 
         # Filter by date
         target_date = self.request.query_params.get("date")

@@ -261,5 +261,7 @@ class SubjectAssignmentCreateSerializer(serializers.ModelSerializer):
     def validate_teacher(self, value):
         """Validate that the user is a teacher."""
         if value.role != "TEACHER":
-            raise serializers.ValidationError("Assigned user must have the TEACHER role.")
+            raise serializers.ValidationError(
+                "Assigned user must have the TEACHER role."
+            )
         return value

@@ -4,6 +4,7 @@ Tests for the shared response envelope.
 Every endpoint must answer with `{"success", "data"}` so the browser client
 can unwrap a response without knowing which DRF base class produced it.
 """
+
 from django.urls import reverse
 
 from common.testing import SchoolTestCase

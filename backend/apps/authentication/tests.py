@@ -1,6 +1,7 @@
 """
 Tests for authentication, registration and privilege boundaries.
 """
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 

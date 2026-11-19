@@ -1,5 +1,4 @@
 from datetime import date
-from typing import List
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -13,9 +12,9 @@ from common.utils import stringify_uuids
 def bulk_mark_attendance(
     subject_assignment_id: str,
     attendance_date: date,
-    attendance_data: List[dict],
+    attendance_data: list[dict],
     recorded_by=None,
-) -> List[Attendance]:
+) -> list[Attendance]:
     """
     Bulk-create or update attendance records for a subject assignment on a given date.
 
@@ -71,7 +70,7 @@ def bulk_mark_attendance(
             f"Student profiles not found or inactive: {', '.join(missing_ids)}"
         )
 
-    created_records: List[Attendance] = []
+    created_records: list[Attendance] = []
 
     for entry in attendance_data:
         student_id = str(entry["student_id"])
@@ -109,7 +108,10 @@ def bulk_mark_attendance(
             record.save()
 
             # Emit signal if status changed to ABSENT
-            if previous_status != Attendance.Status.ABSENT and status == Attendance.Status.ABSENT:
+            if (
+                previous_status != Attendance.Status.ABSENT
+                and status == Attendance.Status.ABSENT
+            ):
                 student_marked_absent.send(
                     sender=Attendance,
                     student_id=str(student.id),

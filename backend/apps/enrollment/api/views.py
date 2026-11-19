@@ -60,9 +60,7 @@ def _visible_student_profiles(user):
     if user.role == "STUDENT":
         return queryset.filter(user_id=user.id)
     if user.role == "PARENT":
-        return queryset.filter(
-            guardian_links__parent__user_id=user.id
-        ).distinct()
+        return queryset.filter(guardian_links__parent__user_id=user.id).distinct()
     return queryset.none()
 
 
@@ -116,9 +114,7 @@ class MyProfileView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        return Response(
-            {"role": role, "profile": serializer_class(profile).data}
-        )
+        return Response({"role": role, "profile": serializer_class(profile).data})
 
 
 # ---------------------------------------------------------------------------
@@ -379,9 +375,7 @@ class StudentGuardianListCreateView(generics.ListCreateAPIView):
         link = link_parent_to_student(
             parent_id=str(data["parent"].id),
             student_id=str(data["student"].id),
-            relationship=data.get(
-                "relationship", StudentGuardian.Relationship.OTHER
-            ),
+            relationship=data.get("relationship", StudentGuardian.Relationship.OTHER),
             is_primary=data.get("is_primary", False),
         )
 

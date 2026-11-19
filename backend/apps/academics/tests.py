@@ -1,6 +1,7 @@
 """
 Tests for academic structure, UUID routing and teacher scoping.
 """
+
 import uuid
 from datetime import date
 
@@ -56,9 +57,7 @@ class GradeLevelTests(SchoolTestCase):
             end_date=date(2027, 6, 30),
         )
 
-        GradeLevel.objects.create(
-            name="Grade 11", level=11, academic_year=next_year
-        )
+        GradeLevel.objects.create(name="Grade 11", level=11, academic_year=next_year)
 
         self.assertEqual(GradeLevel.objects.filter(level=11).count(), 2)
 
@@ -94,9 +93,7 @@ class SubjectAssignmentTests(SchoolTestCase):
         )
 
         self.assertEqual(response.status_code, 201, response.data)
-        self.assertEqual(
-            response.data["data"]["academic_year_name"], "2025-2026"
-        )
+        self.assertEqual(response.data["data"]["academic_year_name"], "2025-2026")
 
     def test_create_without_academic_year_falls_back_to_active(self):
         self.login(self.director)

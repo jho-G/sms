@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from grading.models import AssessmentCategory, Grade
 
-
 # ---------------------------------------------------------------------------
 # Assessment Category Serializers
 # ---------------------------------------------------------------------------
@@ -73,9 +72,7 @@ class GradeSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source="student.user.get_full_name", read_only=True
     )
-    student_code = serializers.CharField(
-        source="student.student_id", read_only=True
-    )
+    student_code = serializers.CharField(source="student.student_id", read_only=True)
     category_name = serializers.CharField(
         source="assessment_category.name", read_only=True
     )
@@ -178,9 +175,7 @@ class BulkGradeSubmitSerializer(serializers.Serializer):
 
     def validate_grades(self, value):
         if not value:
-            raise serializers.ValidationError(
-                "At least one grade entry is required."
-            )
+            raise serializers.ValidationError("At least one grade entry is required.")
         return value
 
 

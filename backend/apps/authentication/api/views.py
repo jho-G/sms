@@ -136,7 +136,7 @@ class LogoutView(APIView):
             if refresh_token:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            
+
             return Response(
                 {
                     "success": True,

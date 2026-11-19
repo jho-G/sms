@@ -1,10 +1,12 @@
 """
 Small, dependency-free helpers shared across apps.
 """
-from typing import Any, Iterable, List
+
+from collections.abc import Iterable
+from typing import Any
 
 
-def stringify_uuids(values: Iterable[Any]) -> List[str]:
+def stringify_uuids(values: Iterable[Any]) -> list[str]:
     """
     Return UUID values as their canonical string form.
 

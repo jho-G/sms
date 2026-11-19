@@ -1,6 +1,7 @@
 """
 Custom middleware for the Student Management System.
 """
+
 from django.middleware.csrf import CsrfViewMiddleware
 from rest_framework.response import Response as DRFResponse
 
@@ -10,7 +11,7 @@ from common.envelope import envelop
 class CsrfExemptApiMiddleware(CsrfViewMiddleware):
     """
     Exempt API endpoints from CSRF protection.
-    
+
     API endpoints use JWT tokens in the Authorization header,
     so CSRF protection is not needed for them.
     """
