@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
     # Local apps (common module)
     "common",
     "authentication",
@@ -173,6 +174,29 @@ REST_FRAMEWORK = {
     "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S%z",
     "DATE_FORMAT": "%Y-%m-%d",
     "TIME_FORMAT": "%H:%M:%S",
+    # OpenAPI 3.0 Schema Generation
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# drf-spectacular (OpenAPI 3.0 Documentation)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Student Management System (SMS) API",
+    "DESCRIPTION": (
+        "Production-grade Modular Monolith REST API for Academic Management, "
+        "Enrollment, Attendance Tracking, and Grading."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/",
+    "TAGS": [
+        {"name": "Authentication", "description": "User registration, login, logout, and JWT tokens"},
+        {"name": "Academics", "description": "Academic years, grade levels, class sections, and subjects"},
+        {"name": "Enrollment", "description": "Student profiles, guardians, parents, and teacher records"},
+        {"name": "Attendance", "description": "Daily student attendance tracking and records"},
+        {"name": "Grading", "description": "Assessment categories, marks entry, and report cards"},
+        {"name": "System", "description": "Health check and orchestration monitoring"},
+    ],
 }
 
 
