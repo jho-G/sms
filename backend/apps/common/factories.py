@@ -1,10 +1,12 @@
 """
 Factory Boy definitions for realistic testing fixtures across the system.
 """
-import factory
-from django.contrib.auth import get_user_model
+
 from datetime import date
 from decimal import Decimal
+
+import factory
+from django.contrib.auth import get_user_model
 from faker import Faker
 
 fake = Faker()
@@ -68,7 +70,7 @@ class AcademicYearFactory(factory.django.DjangoModelFactory):
         model = "academics.AcademicYear"
         django_get_or_create = ("name",)
 
-    name = factory.Sequence(lambda n: f"202{n}-202{n+1}")
+    name = factory.Sequence(lambda n: f"202{n}-202{n + 1}")
     start_date = factory.LazyFunction(lambda: date(2026, 9, 1))
     end_date = factory.LazyFunction(lambda: date(2027, 6, 30))
     is_active = True
@@ -78,7 +80,7 @@ class GradeLevelFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "academics.GradeLevel"
 
-    name = factory.Sequence(lambda n: f"Grade {n+1}")
+    name = factory.Sequence(lambda n: f"Grade {n + 1}")
     level = factory.Sequence(lambda n: n + 1)
     academic_year = factory.SubFactory(AcademicYearFactory)
     description = "Test Grade Level"
@@ -91,7 +93,7 @@ class ClassSectionFactory(factory.django.DjangoModelFactory):
     grade_level = factory.SubFactory(GradeLevelFactory)
     name = factory.Sequence(lambda n: chr(65 + (n % 26)))  # Section A, B, C...
     capacity = 30
-    room_number = factory.Sequence(lambda n: f"Room-{100+n}")
+    room_number = factory.Sequence(lambda n: f"Room-{100 + n}")
     is_active = True
 
 
@@ -101,7 +103,7 @@ class SubjectFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("code",)
 
     name = factory.Sequence(lambda n: f"Subject {n}")
-    code = factory.Sequence(lambda n: f"SUB{100+n}")
+    code = factory.Sequence(lambda n: f"SUB{100 + n}")
     description = "Core academic subject"
 
 
@@ -123,7 +125,7 @@ class StudentProfileFactory(factory.django.DjangoModelFactory):
         model = "enrollment.StudentProfile"
 
     user = factory.SubFactory(StudentUserFactory)
-    student_id = factory.Sequence(lambda n: f"STU-2026-{n+1:04d}")
+    student_id = factory.Sequence(lambda n: f"STU-2026-{n + 1:04d}")
     section = factory.SubFactory(ClassSectionFactory)
     date_of_birth = factory.LazyFunction(lambda: date(2010, 5, 20))
     guardian_contact = "+15550199"
@@ -135,7 +137,7 @@ class TeacherProfileFactory(factory.django.DjangoModelFactory):
         model = "enrollment.TeacherProfile"
 
     user = factory.SubFactory(TeacherUserFactory)
-    employee_id = factory.Sequence(lambda n: f"TCH-2026-{n+1:03d}")
+    employee_id = factory.Sequence(lambda n: f"TCH-2026-{n + 1:03d}")
     department = "Science"
     specialization = "Mathematics"
     qualification = "M.Sc."
@@ -179,7 +181,7 @@ class AssessmentCategoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "grading.AssessmentCategory"
 
-    name = factory.Sequence(lambda n: f"Assessment {n+1}")
+    name = factory.Sequence(lambda n: f"Assessment {n + 1}")
     subject_assignment = factory.SubFactory(SubjectAssignmentFactory)
     weight = Decimal("25.00")
     description = "Test assessment category"

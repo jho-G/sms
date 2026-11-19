@@ -194,11 +194,26 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/",
     "TAGS": [
-        {"name": "Authentication", "description": "User registration, login, logout, and JWT tokens"},
-        {"name": "Academics", "description": "Academic years, grade levels, class sections, and subjects"},
-        {"name": "Enrollment", "description": "Student profiles, guardians, parents, and teacher records"},
-        {"name": "Attendance", "description": "Daily student attendance tracking and records"},
-        {"name": "Grading", "description": "Assessment categories, marks entry, and report cards"},
+        {
+            "name": "Authentication",
+            "description": "User registration, login, logout, and JWT tokens",
+        },
+        {
+            "name": "Academics",
+            "description": "Academic years, grade levels, class sections, and subjects",
+        },
+        {
+            "name": "Enrollment",
+            "description": "Student profiles, guardians, parents, and teacher records",
+        },
+        {
+            "name": "Attendance",
+            "description": "Daily student attendance tracking and records",
+        },
+        {
+            "name": "Grading",
+            "description": "Assessment categories, marks entry, and report cards",
+        },
         {"name": "System", "description": "Health check and orchestration monitoring"},
     ],
 }

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.urls import reverse
 
-from common.factories import DirectorFactory, StudentUserFactory, UserFactory
+from common.factories import DirectorFactory, StudentUserFactory
 from common.testing import SchoolTestCase
 
 User = get_user_model()

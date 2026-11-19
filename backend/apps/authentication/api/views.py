@@ -185,12 +185,19 @@ class LoginView(APIView):
     summary="Log out and blacklist refresh token",
     request=inline_serializer(
         name="LogoutRequest",
-        fields={"refresh": serializers.CharField(help_text="JWT refresh token to invalidate")},
+        fields={
+            "refresh": serializers.CharField(
+                help_text="JWT refresh token to invalidate"
+            )
+        },
     ),
     responses={
         200: inline_serializer(
             name="LogoutResponse",
-            fields={"success": serializers.BooleanField(), "message": serializers.CharField()},
+            fields={
+                "success": serializers.BooleanField(),
+                "message": serializers.CharField(),
+            },
         )
     },
 )

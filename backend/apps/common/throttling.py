@@ -2,6 +2,7 @@
 Custom rate limit throttling classes to safeguard sensitive endpoints against
 brute force and denial-of-service attacks.
 """
+
 from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle
 
 
