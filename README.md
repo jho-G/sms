@@ -135,6 +135,20 @@ Key variables defined in `.env.docker.example`:
 
 ---
 
+## 🔒 Security & API Rate Limiting
+
+To prevent credential stuffing and brute-force attacks, the API enforces tiered rate limiting via Django REST Framework:
+
+| Scope | Rate Limit | Target Endpoints | Behavior when Exceeded |
+|---|---|---|---|
+| **Auth Burst** | 10 requests / minute | `/api/auth/login/`, `/api/auth/register/` | HTTP 429 Too Many Requests (`Retry-After` header) |
+| **Auth Sustained** | 100 requests / hour | `/api/auth/login/`, `/api/auth/register/` | HTTP 429 Too Many Requests |
+| **Password Operations** | 5 requests / hour | `/api/auth/change-password/` | HTTP 429 Too Many Requests |
+| **Anonymous Global** | 100 requests / hour | Unauthenticated endpoints | HTTP 429 Too Many Requests |
+| **Authenticated User** | 1000 requests / hour | Authenticated session queries | HTTP 429 Too Many Requests |
+
+---
+
 ## 🧪 Testing & Code Quality
 
 ### Running Backend Tests
