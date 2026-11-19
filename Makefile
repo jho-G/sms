@@ -119,6 +119,11 @@ check: ## Run system checks, TypeScript verification, and docker validate
 pre-commit: ## Run all pre-commit hooks on all tracked files
 	pre-commit run --all-files || ./venv/bin/pre-commit run --all-files
 
+##@ 📖 OpenAPI & Documentation
+schema: ## Generate OpenAPI 3.0 schema definition in schema.yml
+	@echo -e "$(GREEN)Generating OpenAPI schema...$(RESET)"
+	./venv/bin/python backend/manage.py spectacular --file schema.yml
+
 ##@ ℹ️ General
 help: ## Display this help dialog
 	@echo -e "$(BLUE)Student Management System - Developer Commands$(RESET)"
